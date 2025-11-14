@@ -1,0 +1,123 @@
+{
+    "brand_name": "Deriv",
+    "brand_domain": "deriv.com",
+    "brand_hostname": {
+        "staging": "staging-home.deriv.com/dashboard",
+        "production": "home.deriv.com/dashboard"
+    },
+    "domain_name": "Deriv.com",
+    "colors": {
+        "primary": "#ff444f",
+        "secondary": "#85acb0",
+        "tertiary": "#2a3052",
+        "success": "#4bb4b3",
+        "danger": "#cc2e3d",
+        "warning": "#ffad3a",
+        "info": "#377cfc",
+        "neutral": "#999999",
+        "black": "#151717",
+        "white": "#ffffff",
+        "grey": {
+            "50": "#f2f3f4",
+            "100": "#e6e9e9",
+            "200": "#d6dadb",
+            "300": "#b0b3b3",
+            "400": "#999999",
+            "500": "#6e6e6e",
+            "600": "#5c5c5c",
+            "700": "#424242",
+            "800": "#2a2a2a",
+            "900": "#151717"
+        }
+    },
+    "color_variants": {
+        "light_variants": [100, 200, 300, 400, 500],
+        "dark_variants": [600, 700, 800, 900],
+        "opacity_variants": [10, 20, 30, 40, 50, 60, 70, 80, 90]
+    },
+    "theme_config": {
+        "enable_dynamic_themes": true,
+        "auto_generate_variants": true,
+        "css_variable_prefix": "--brand"
+    },
+    "platform": {
+        "name": "Deriv Bot",
+        "primary_color": "secondary",
+        "hub_url": "/bot"
+    },
+    "legal_entities": {
+        "fx": "Deriv (FX) Ltd",
+        "malta": "Deriv (Europe) Limited",
+        "maltainvest": "Deriv Investments (Europe) Limited",
+        "mx": "Deriv (MX) Ltd",
+        "samoa": "Deriv Capital International Ltd",
+        "svg": "Deriv (SVG) LLC",
+        "v": "Deriv (V) Ltd"
+    },
+    "platforms": {
+        "trader": {
+            "name": "Deriv Trader",
+            "icon": "IcRebrandingDerivTrader"
+        },
+        "dbot": {
+            "name": "Deriv Bot",
+            "icon": "IcRebrandingDerivBot"
+        },
+        "mt5": {
+            "name": "Deriv MT5",
+            "icon": "IcRebrandingDmt5"
+        },
+        "ctrader": {
+            "name": "Deriv cTrader",
+            "icon": "IcRebrandingCtrader"
+        },
+        "dxtrade": {
+            "name": "Deriv X",
+            "icon": "IcRebrandingDxtrade"
+        },
+        "smarttrader": {
+            "name": "SmartTrader",
+            "icon": "IcRebrandingSmarttrader"
+        },
+        "bbot": {
+            "name": "Binary Bot",
+            "icon": "IcRebrandingBinaryBot"
+        },
+        "go": {
+            "name": "Deriv GO",
+            "icon": "IcRebrandingDerivGo"
+        }
+    },
+    "platforms_appstore": {
+        "trader": {
+            "name": "Deriv Trader",
+            "icon": "DTrader",
+            "availability": "All"
+        },
+        "dbot": {
+            "name": "Deriv Bot",
+            "icon": "DBot",
+            "availability": "Non-EU"
+        },
+        "smarttrader": {
+            "name": "SmartTrader",
+            "icon": "SmartTrader",
+            "availability": "Non-EU"
+        },
+        "bbot": {
+            "name": "Binary Bot",
+            "icon": "BinaryBot",
+            "availability": "Non-EU"
+        },
+        "go": {
+            "name": "Deriv GO",
+            "icon": "DerivGo",
+            "availability": "Non-EU"
+        },
+        "ctrader": {
+            "name": "",
+            "icon": "",
+            "availability": ""
+        }
+    }
+}
