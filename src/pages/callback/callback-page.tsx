@@ -1,4 +1,4 @@
-import { crypto_currencies_display_order, fiat_currencies_display_order } from '@/components/shared';
+import { clearCSRFToken,crypto_currencies_display_order, fiat_currencies_display_order, validateCSRFToken } from '@/components/shared';
 import { generateDerivApiInstance } from '@/external/bot-skeleton/services/api/appId';
 import { clearAuthData } from '@/utils/auth-utils';
 import { clearInvalidTokenParams } from '@/utils/url-utils';
@@ -32,6 +32,24 @@ const CallbackPage = () => {
     return (
         <Callback
             onSignInSuccess={async (tokens: Record<string, string>, rawState: unknown) => {
+                // [AI]
+                // CSRF Token Validation
+                // Extract CSRF token from state parameter
+                const urlParams = new URLSearchParams(window.location.search);
+                const csrfTokenFromUrl = urlParams.get('state');
+                
+                if (!csrfTokenFromUrl || !validateCSRFToken(csrfTokenFromUrl)) {
+                    console.error('CSRF token validation failed - potential security threat');
+                    // Clear any auth data and redirect to home
+                    clearAuthData();
+                    window.location.replace(window.location.origin);
+                    return;
+                }
+                
+                // Clear CSRF token after successful validation
+                clearCSRFToken();
+                // [/AI]
+                
                 const state = rawState as { account?: string } | null;
                 const accountsList: Record<string, string> = {};
                 const clientAccounts: Record<string, { loginid: string; token: string; currency: string }> = {};
