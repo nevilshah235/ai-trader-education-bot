@@ -314,7 +314,7 @@ export const generateOAuthURL = async () => {
             // Build redirect URL
             const protocol = window.location.protocol;
             const host = window.location.host;
-            const redirectUrl = `${protocol}//${host}/callback`;
+            const redirectUrl = `${protocol}//${host}`;
             
             // Build OAuth URL with PKCE parameters
             // - state: CSRF token for security
