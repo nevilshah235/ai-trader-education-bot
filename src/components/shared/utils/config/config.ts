@@ -1,4 +1,8 @@
 import brandConfig from '../../../../../brand.config.json';
+// [AI]
+import { OAuthTokenExchangeService } from '@/services/oauth-token-exchange.service';
+import { DerivWSAccountsService } from '@/services/derivws-accounts.service';
+// [/AI]
 
 // =============================================================================
 // Constants - Domain & Server Configuration (from brand.config.json)
@@ -20,8 +24,8 @@ export const STAGING_DOMAINS = {
 
 // WebSocket server URLs
 export const WS_SERVERS = {
-    STAGING: brandConfig.platform.websocket_servers.staging,
-    PRODUCTION: brandConfig.platform.websocket_servers.production,
+    STAGING: `${brandConfig.platform.derivws.url.staging}options/ws/public`,
+    PRODUCTION: `${brandConfig.platform.derivws.url.production}options/ws/public`,
 } as const;
 // who am i  server URLs - Production
 export const WHO_AM_I_SERVERS = {
@@ -110,22 +114,39 @@ const getDefaultServerURL = () => {
     return isProductionEnv ? WS_SERVERS.PRODUCTION : WS_SERVERS.STAGING;
 };
 
-export const getSocketURL = () => {
-    const local_storage_server_url = window.localStorage.getItem('config.server_url');
-
-    if (local_storage_server_url) {
-        // Validate it's a reasonable hostname (not a full URL, no protocol)
-        if (/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(local_storage_server_url)) {
-            return local_storage_server_url;
+// [AI]
+/**
+ * Gets the WebSocket URL using the new authenticated flow
+ * This function orchestrates the complete flow:
+ * 1. Get access token from auth_info
+ * 2. Fetch accounts list from derivatives/accounts
+ * 3. Store accounts in sessionStorage
+ * 4. Get default account (first from list)
+ * 5. Fetch OTP and WebSocket URL for that account
+ *
+ * @returns Promise with WebSocket URL or fallback to default server
+ */
+export const getSocketURL = async (): Promise<string> => {
+    // [AI]
+    try {
+        // Check if user is authenticated
+        const authInfo = OAuthTokenExchangeService.getAuthInfo();
+        if (!authInfo || !authInfo.access_token) {
+            console.log('[DerivWS] No auth info found, using default server URL');
+            return getDefaultServerURL();
         }
-        // Clear invalid value
-        window.localStorage.removeItem('config.server_url');
+
+        // Use the DerivWSAccountsService to get authenticated WebSocket URL
+        const wsUrl = await DerivWSAccountsService.getAuthenticatedWebSocketURL(authInfo.access_token);
+        console.log('[DerivWS] Successfully retrieved authenticated WebSocket URL');
+        return wsUrl;
+    } catch (error) {
+        console.error('[DerivWS] Error in getSocketURL:', error);
+        return getDefaultServerURL();
     }
-
-    const server_url = getDefaultServerURL();
-
-    return server_url;
+    // [/AI]
 };
+// [/AI]
 
 export const getDebugServiceWorker = () => {
     const debug_service_worker_flag = window.localStorage.getItem('debug_service_worker');
@@ -143,7 +164,7 @@ const generateCSRFToken = (): string => {
     // Generate 32 random bytes (256 bits) for strong security
     const array = new Uint8Array(32);
     crypto.getRandomValues(array);
-    
+
     // Convert to base64url encoding (URL-safe)
     const base64 = btoa(String.fromCharCode(...array));
     return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
@@ -159,7 +180,7 @@ const generateCodeVerifier = (): string => {
     // Generate 32 random bytes (will result in 43 characters after base64url encoding)
     const array = new Uint8Array(32);
     crypto.getRandomValues(array);
-    
+
     // Convert to base64url encoding (URL-safe, no padding)
     const base64 = btoa(String.fromCharCode(...array));
     return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
@@ -176,10 +197,10 @@ const generateCodeChallenge = async (verifier: string): Promise<string> => {
     // Encode the verifier as UTF-8
     const encoder = new TextEncoder();
     const data = encoder.encode(verifier);
-    
+
     // Hash with SHA-256
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    
+
     // Convert to base64url encoding
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     const base64 = btoa(String.fromCharCode(...hashArray));
@@ -207,11 +228,11 @@ const storeCodeVerifier = (verifier: string): void => {
 export const getCodeVerifier = (): string | null => {
     const verifier = sessionStorage.getItem('oauth_code_verifier');
     const timestamp = sessionStorage.getItem('oauth_code_verifier_timestamp');
-    
+
     if (!verifier || !timestamp) {
         return null;
     }
-    
+
     // Check if verifier is expired (10 minutes = 600000ms)
     const verifierAge = Date.now() - parseInt(timestamp, 10);
     if (verifierAge > 600000) {
@@ -220,7 +241,7 @@ export const getCodeVerifier = (): string | null => {
         sessionStorage.removeItem('oauth_code_verifier_timestamp');
         return null;
     }
-    
+
     return verifier;
 };
 // [/AI]
@@ -256,16 +277,16 @@ const storeCSRFToken = (token: string): void => {
 export const validateCSRFToken = (token: string): boolean => {
     const storedToken = sessionStorage.getItem('oauth_csrf_token');
     const timestamp = sessionStorage.getItem('oauth_csrf_token_timestamp');
-    
+
     if (!storedToken || !timestamp) {
         return false;
     }
-    
+
     // Check if token matches
     if (storedToken !== token) {
         return false;
     }
-    
+
     // Check if token is expired (10 minutes = 600000ms)
     const tokenAge = Date.now() - parseInt(timestamp, 10);
     if (tokenAge > 600000) {
@@ -274,7 +295,7 @@ export const validateCSRFToken = (token: string): boolean => {
         sessionStorage.removeItem('oauth_csrf_token_timestamp');
         return false;
     }
-    
+
     return true;
 };
 // [/AI]
@@ -300,28 +321,28 @@ export const generateOAuthURL = async () => {
         if (hostname && clientId) {
             // Generate CSRF token for security
             const csrfToken = generateCSRFToken();
-            
+
             // Store token for validation after callback
             storeCSRFToken(csrfToken);
-            
+
             // Generate PKCE parameters
             const codeVerifier = generateCodeVerifier();
             const codeChallenge = await generateCodeChallenge(codeVerifier);
-            
+
             // Store code verifier for token exchange
             storeCodeVerifier(codeVerifier);
-            
+
             // Build redirect URL
             const protocol = window.location.protocol;
             const host = window.location.host;
             const redirectUrl = `${protocol}//${host}`;
-            
+
             // Build OAuth URL with PKCE parameters
             // - state: CSRF token for security
             // - code_challenge: SHA-256 hash of code_verifier
             // - code_challenge_method: S256 (SHA-256)
             const oauthUrl = `${hostname}auth?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUrl)}&state=${csrfToken}&code_challenge=${codeChallenge}&code_challenge_method=S256`;
-            
+
             return oauthUrl;
         }
     } catch (error) {

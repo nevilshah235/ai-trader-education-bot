@@ -1,24 +1,27 @@
-import { getAccountId, getAccountType } from '@/analytics/utils';
 import { getSocketURL } from '@/components/shared';
 import DerivAPIBasic from '@deriv/deriv-api/dist/DerivAPIBasic';
 import APIMiddleware from './api-middleware';
 
-export const generateDerivApiInstance = () => {
-    const cleanedServer = getSocketURL();
-    const account_id = getAccountId();
-    const account_type = getAccountType(account_id);
-    let socket_url = `wss://${cleanedServer}/${account_type}`;
-    // Add account_id query param for authenticated endpoints (real/demo)
-    if (account_id) {
-        socket_url += `?account_id=${account_id}`;
-    }
-    const deriv_socket = new WebSocket(socket_url);
+// [AI]
+/**
+ * Generates a Deriv API instance with WebSocket connection
+ * Now supports async WebSocket URL fetching with authenticated flow
+ * @returns Promise with DerivAPIBasic instance
+ */
+export const generateDerivApiInstance = async () => {
+    // Await the async getSocketURL() function
+    const wsURL = await getSocketURL();
+
+    console.log('[WebSocket] Creating connection to:', wsURL);
+
+    const deriv_socket = new WebSocket(wsURL);
     const deriv_api = new DerivAPIBasic({
         connection: deriv_socket,
         middleware: new APIMiddleware({}),
     });
     return deriv_api;
 };
+// [/AI]
 
 export const getLoginId = () => {
     const login_id = localStorage.getItem('active_loginid');

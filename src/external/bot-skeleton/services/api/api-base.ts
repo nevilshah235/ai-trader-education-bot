@@ -142,7 +142,15 @@ class APIBase {
                 this.api.connection.removeEventListener('open', this.onsocketopen.bind(this));
                 this.api.connection.removeEventListener('close', this.onsocketclose.bind(this));
             }
-            this.api = generateDerivApiInstance();
+            
+            // [AI]
+            // Use authenticated flow if we have auth_info, otherwise use legacy flow
+            const authInfoStr = sessionStorage.getItem('auth_info');
+            const useAuthenticatedFlow = !!authInfoStr;
+            
+            console.log('[API Base] Generating API instance with authenticated flow:', useAuthenticatedFlow);
+            this.api = await generateDerivApiInstance();
+            // [/AI]
 
             this.api?.connection.addEventListener('open', this.onsocketopen.bind(this));
             this.api?.connection.addEventListener('close', this.onsocketclose.bind(this));

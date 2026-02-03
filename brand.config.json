@@ -80,6 +80,16 @@
         "auth2_url": {
             "production": "https://auth.deriv.com/oauth2/",
             "staging": "https://staging-auth.deriv.com/oauth2/"
+        },
+        "derivws": {
+            "url": {
+                "staging": "https://staging-api.derivws.com/trading/v1/",
+                "production": "https://api.derivws.com/trading/v1/"
+            },
+            "directories": {
+                "options": "options/",
+                "derivatives": "derivatives/"
+            }
         }
     }
 }
