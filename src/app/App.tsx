@@ -1,18 +1,16 @@
-import { initSurvicate } from '../public-path';
 import { lazy, Suspense } from 'react';
 import React from 'react';
 import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from 'react-router-dom';
 import ChunkLoader from '@/components/loader/chunk-loader';
 import LocalStorageSyncWrapper from '@/components/localStorage-sync-wrapper';
 import RoutePromptDialog from '@/components/route-prompt-dialog';
-import { crypto_currencies_display_order, fiat_currencies_display_order } from '@/components/shared';
-import { clearCSRFToken,validateCSRFToken } from '@/components/shared/utils/config/config';
+import { useAccountSwitching } from '@/hooks/useAccountSwitching';
+import { useLanguageFromURL } from '@/hooks/useLanguageFromURL';
+import { useOAuthCallback } from '@/hooks/useOAuthCallback';
 import { StoreProvider } from '@/hooks/useStore';
 import Endpoint from '@/pages/endpoint';
-import { TAuthData } from '@/types/api-types';
-import { clearAuthData } from '@/utils/auth-utils';
-import { FILTERED_LANGUAGES } from '@/utils/languages';
-import { initializeI18n, localize, TranslationProvider, useTranslations } from '@deriv-com/translations';
+import { OAuthTokenExchangeService } from '@/services/oauth-token-exchange.service';
+import { initializeI18n, localize, TranslationProvider } from '@deriv-com/translations';
 import CoreStoreProvider from './CoreStoreProvider';
 import './app-root.scss';
 
@@ -24,65 +22,16 @@ const i18nInstance = initializeI18n({
     cdnUrl: `${TRANSLATIONS_CDN_URL || 'https://translations.deriv.com'}/${R2_PROJECT_NAME}/${CROWDIN_BRANCH_NAME}`,
 });
 
-// Component to handle language URL parameter
+// [AI]
+/**
+ * Component wrapper to handle language URL parameter
+ * Uses the useLanguageFromURL hook to process language switching
+ */
 const LanguageHandler = ({ children }: { children: React.ReactNode }) => {
-    const { switchLanguage } = useTranslations();
-
-    React.useEffect(() => {
-        const urlParams = new URLSearchParams(window.location.search);
-        let langParam = urlParams.get('lang');
-
-        // If no URL param, check localStorage
-        if (!langParam) {
-            const storedLang = localStorage.getItem('i18n_language');
-            if (storedLang) {
-                try {
-                    // Try to parse as JSON first (in case it's stored as JSON string)
-                    langParam = JSON.parse(storedLang);
-                } catch {
-                    // If parsing fails, use the raw value
-                    langParam = storedLang;
-                }
-            }
-        }
-
-        if (langParam) {
-            // Convert to uppercase to match our language codes
-            const langCodeCandidate = langParam.toUpperCase();
-
-            // Use FILTERED_LANGUAGES to check supported languages
-            const supportedLangCodes = FILTERED_LANGUAGES.map(lang => lang.code);
-
-            // Redirect any unsupported language to EN (English)
-            if (!supportedLangCodes.includes(langCodeCandidate)) {
-                try {
-                    switchLanguage('EN');
-                    // Remove lang parameter after processing to avoid URL pollution
-                    const url = new URL(window.location.href);
-                    url.searchParams.delete('lang');
-                    window.history.replaceState({}, '', url.toString());
-                } catch (error) {
-                    console.error('Failed to switch language:', error);
-                }
-                return;
-            }
-
-            // If language is supported, switch to it
-            const langCode = langCodeCandidate as (typeof FILTERED_LANGUAGES)[number]['code'];
-            try {
-                switchLanguage(langCode);
-                // Remove lang parameter after processing to avoid URL pollution
-                const url = new URL(window.location.href);
-                url.searchParams.delete('lang');
-                window.history.replaceState({}, '', url.toString());
-            } catch (error) {
-                console.error('Failed to switch language:', error);
-            }
-        }
-    }, [switchLanguage]);
-
+    useLanguageFromURL();
     return <>{children}</>;
 };
+// [/AI]
 
 const router = createBrowserRouter(
     createRoutesFromElements(
@@ -114,100 +63,61 @@ const router = createBrowserRouter(
     )
 );
 
+// [AI]
+/**
+ * Main App component
+ * 
+ * Responsibilities:
+ * 1. OAuth callback handling (via useOAuthCallback hook)
+ * 2. Account switching from URL (via useAccountSwitching hook)
+ * 3. Router provider setup
+ * 
+ * All complex logic has been extracted into custom hooks for better maintainability
+ */
 function App() {
-    // [AI]
-    // Validate CSRF token on app initialization (for OAuth callback flow)
+    // Handle OAuth callback flow (CSRF validation + code extraction)
+    const { isProcessing, isValid, params, error, cleanupURL } = useOAuthCallback();
+
+    // Handle account switching via URL parameter
+    useAccountSwitching();
+
+    // Process the authorization code when OAuth callback is valid
     React.useEffect(() => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const csrfTokenFromUrl = urlParams.get('state');
-        
-        // Only validate if we have a state parameter (OAuth callback scenario)
-        if (csrfTokenFromUrl) {
-            if (!validateCSRFToken(csrfTokenFromUrl)) {
-                console.error('CSRF token validation failed - potential security threat');
-                clearAuthData();
-                // Redirect to home page without the state parameter
-                window.location.replace(window.location.origin);
-                return;
-            }
-            // Clear CSRF token after successful validation
-            clearCSRFToken();
-            
-            // Remove state parameter from URL after validation
-            const url = new URL(window.location.href);
-            url.searchParams.delete('state');
-            window.history.replaceState({}, '', url.toString());
-        }
-    }, []);
-    // [/AI]
+        if (!isProcessing && isValid && params.code) {
+            console.log('OAuth authorization code received:', params.code);
 
-    React.useEffect(() => {
-        // Use the invalid token handler hook to automatically retrigger OIDC authentication
-        // when an invalid token is detected and the cookie logged state is true
-
-        initSurvicate();
-        window?.dataLayer?.push({ event: 'page_load' });
-        return () => {
-            // Clean up the invalid token handler when the component unmounts
-            const survicate_box = document.getElementById('survicate-box');
-            if (survicate_box) {
-                survicate_box.style.display = 'none';
-            }
-        };
-    }, []);
-
-    React.useEffect(() => {
-        const accounts_list = localStorage.getItem('accountsList');
-        const client_accounts = localStorage.getItem('clientAccounts');
-        const url_params = new URLSearchParams(window.location.search);
-        const account_currency = url_params.get('account');
-        const validCurrencies = [...fiat_currencies_display_order, ...crypto_currencies_display_order];
-
-        const is_valid_currency = account_currency && validCurrencies.includes(account_currency?.toUpperCase());
-
-        if (!accounts_list || !client_accounts) return;
-
-        try {
-            const parsed_accounts = JSON.parse(accounts_list);
-            const parsed_client_accounts = JSON.parse(client_accounts) as TAuthData['account_list'];
-
-            const updateLocalStorage = (token: string, loginid: string) => {
-                localStorage.setItem('authToken', token);
-                localStorage.setItem('active_loginid', loginid);
-            };
-
-            // Handle demo account
-            if (account_currency?.toUpperCase() === 'DEMO') {
-                const demo_account = Object.entries(parsed_accounts).find(([key]) => key.startsWith('VR'));
-
-                if (demo_account) {
-                    const [loginid, token] = demo_account;
-                    updateLocalStorage(String(token), loginid);
-                    return;
-                }
-            }
-
-            // Handle real account with valid currency
-            if (account_currency?.toUpperCase() !== 'DEMO' && is_valid_currency) {
-                const real_account = Object.entries(parsed_client_accounts).find(
-                    ([loginid, account]) =>
-                        !loginid.startsWith('VR') && account.currency.toUpperCase() === account_currency?.toUpperCase()
-                );
-
-                if (real_account) {
-                    const [loginid, account] = real_account;
-                    if ('token' in account) {
-                        updateLocalStorage(String(account?.token), loginid);
+            // Exchange authorization code for access token
+            OAuthTokenExchangeService.exchangeCodeForToken(params.code)
+                .then(response => {
+                    if (response.access_token) {
+                        console.log('✅ Token exchange successful');
+                        // TODO: Store tokens in sessionStorage
+                        // sessionStorage.setItem('access_token', response.access_token);
+                        // if (response.refresh_token) {
+                        //     sessionStorage.setItem('refresh_token', response.refresh_token);
+                        // }
+                        
+                        // Clean up URL after successful token exchange
+                        // cleanupURL();
+                    } else if (response.error) {
+                        console.error('❌ Token exchange failed:', response.error);
+                        console.error('Error description:', response.error_description);
+                        // Clean up URL even on error
+                        // cleanupURL();
                     }
-                    return;
-                }
-            }
-        } catch (e) {
-            console.warn('Error', e); // eslint-disable-line no-console
+                })
+                .catch(error => {
+                    console.error('❌ Token exchange request failed:', error);
+                    // Clean up URL even on error
+                    // cleanupURL();
+                });
+        } else if (!isProcessing && error) {
+            console.error('OAuth callback error:', error);
         }
-    }, []);
+    }, [isProcessing, isValid, params.code, error, cleanupURL]);
 
     return <RouterProvider router={router} />;
 }
+// [/AI]
 
 export default App;
