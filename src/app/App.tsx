@@ -22,7 +22,6 @@ const i18nInstance = initializeI18n({
     cdnUrl: `${TRANSLATIONS_CDN_URL || 'https://translations.deriv.com'}/${R2_PROJECT_NAME}/${CROWDIN_BRANCH_NAME}`,
 });
 
-// [AI]
 /**
  * Component wrapper to handle language URL parameter
  * Uses the useLanguageFromURL hook to process language switching
@@ -31,7 +30,6 @@ const LanguageHandler = ({ children }: { children: React.ReactNode }) => {
     useLanguageFromURL();
     return <>{children}</>;
 };
-// [/AI]
 
 const router = createBrowserRouter(
     createRoutesFromElements(
@@ -63,7 +61,6 @@ const router = createBrowserRouter(
     )
 );
 
-// [AI]
 /**
  * Main App component
  * 
@@ -84,32 +81,22 @@ function App() {
     // Process the authorization code when OAuth callback is valid
     React.useEffect(() => {
         if (!isProcessing && isValid && params.code) {
-            console.log('OAuth authorization code received:', params.code);
-
             // Exchange authorization code for access token
             OAuthTokenExchangeService.exchangeCodeForToken(params.code)
                 .then(response => {
                     if (response.access_token) {
-                        console.log('✅ Token exchange successful');
-                        // TODO: Store tokens in sessionStorage
-                        // sessionStorage.setItem('access_token', response.access_token);
-                        // if (response.refresh_token) {
-                        //     sessionStorage.setItem('refresh_token', response.refresh_token);
-                        // }
-                        
-                        // Clean up URL after successful token exchange
-                        // cleanupURL();
+                        cleanupURL();
                     } else if (response.error) {
                         console.error('❌ Token exchange failed:', response.error);
                         console.error('Error description:', response.error_description);
                         // Clean up URL even on error
-                        // cleanupURL();
+                        cleanupURL();
                     }
                 })
                 .catch(error => {
                     console.error('❌ Token exchange request failed:', error);
                     // Clean up URL even on error
-                    // cleanupURL();
+                    cleanupURL();
                 });
         } else if (!isProcessing && error) {
             console.error('OAuth callback error:', error);
@@ -118,6 +105,5 @@ function App() {
 
     return <RouterProvider router={router} />;
 }
-// [/AI]
 
 export default App;

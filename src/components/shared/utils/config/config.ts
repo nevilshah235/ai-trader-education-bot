@@ -1,8 +1,6 @@
-import brandConfig from '../../../../../brand.config.json';
-// [AI]
-import { OAuthTokenExchangeService } from '@/services/oauth-token-exchange.service';
 import { DerivWSAccountsService } from '@/services/derivws-accounts.service';
-// [/AI]
+import { OAuthTokenExchangeService } from '@/services/oauth-token-exchange.service';
+import brandConfig from '../../../../../brand.config.json';
 
 // =============================================================================
 // Constants - Domain & Server Configuration (from brand.config.json)
@@ -114,7 +112,6 @@ const getDefaultServerURL = () => {
     return isProductionEnv ? WS_SERVERS.PRODUCTION : WS_SERVERS.STAGING;
 };
 
-// [AI]
 /**
  * Gets the WebSocket URL using the new authenticated flow
  * This function orchestrates the complete flow:
@@ -132,19 +129,16 @@ export const getSocketURL = async (): Promise<string> => {
         // Check if user is authenticated
         const authInfo = OAuthTokenExchangeService.getAuthInfo();
         if (!authInfo || !authInfo.access_token) {
-            console.log('[DerivWS] No auth info found, using default server URL');
             return getDefaultServerURL();
         }
 
         // Use the DerivWSAccountsService to get authenticated WebSocket URL
         const wsUrl = await DerivWSAccountsService.getAuthenticatedWebSocketURL(authInfo.access_token);
-        console.log('[DerivWS] Successfully retrieved authenticated WebSocket URL');
         return wsUrl;
     } catch (error) {
         console.error('[DerivWS] Error in getSocketURL:', error);
         return getDefaultServerURL();
     }
-    // [/AI]
 };
 // [/AI]
 
@@ -155,7 +149,6 @@ export const getDebugServiceWorker = () => {
     return false;
 };
 
-// [AI]
 /**
  * Generates a cryptographically secure CSRF token
  * @returns A random base64url-encoded string
@@ -169,9 +162,7 @@ const generateCSRFToken = (): string => {
     const base64 = btoa(String.fromCharCode(...array));
     return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 };
-// [/AI]
 
-// [AI]
 /**
  * Generates a PKCE code verifier (random string)
  * @returns A cryptographically random base64url-encoded string (43-128 characters)
@@ -185,9 +176,7 @@ const generateCodeVerifier = (): string => {
     const base64 = btoa(String.fromCharCode(...array));
     return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 };
-// [/AI]
 
-// [AI]
 /**
  * Generates a PKCE code challenge from a code verifier using SHA-256
  * @param verifier The code verifier string
@@ -206,9 +195,7 @@ const generateCodeChallenge = async (verifier: string): Promise<string> => {
     const base64 = btoa(String.fromCharCode(...hashArray));
     return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 };
-// [/AI]
 
-// [AI]
 /**
  * Stores PKCE code verifier in sessionStorage for token exchange
  * @param verifier The code verifier to store
@@ -218,9 +205,7 @@ const storeCodeVerifier = (verifier: string): void => {
     // Also store timestamp for verifier expiration (e.g., 10 minutes)
     sessionStorage.setItem('oauth_code_verifier_timestamp', Date.now().toString());
 };
-// [/AI]
 
-// [AI]
 /**
  * Retrieves and validates the stored PKCE code verifier
  * @returns The code verifier if valid and not expired, null otherwise
@@ -244,9 +229,7 @@ export const getCodeVerifier = (): string | null => {
 
     return verifier;
 };
-// [/AI]
 
-// [AI]
 /**
  * Clears PKCE code verifier from sessionStorage after successful token exchange
  */
@@ -254,9 +237,7 @@ export const clearCodeVerifier = (): void => {
     sessionStorage.removeItem('oauth_code_verifier');
     sessionStorage.removeItem('oauth_code_verifier_timestamp');
 };
-// [/AI]
 
-// [AI]
 /**
  * Stores CSRF token in sessionStorage for validation after OAuth callback
  * @param token The CSRF token to store
@@ -266,9 +247,7 @@ const storeCSRFToken = (token: string): void => {
     // Also store timestamp for token expiration (e.g., 10 minutes)
     sessionStorage.setItem('oauth_csrf_token_timestamp', Date.now().toString());
 };
-// [/AI]
 
-// [AI]
 /**
  * Validates CSRF token from OAuth callback
  * @param token The token to validate
@@ -298,9 +277,7 @@ export const validateCSRFToken = (token: string): boolean => {
 
     return true;
 };
-// [/AI]
 
-// [AI]
 /**
  * Clears CSRF token from sessionStorage after successful validation
  */
@@ -308,9 +285,7 @@ export const clearCSRFToken = (): void => {
     sessionStorage.removeItem('oauth_csrf_token');
     sessionStorage.removeItem('oauth_csrf_token_timestamp');
 };
-// [/AI]
 
-// [AI]
 export const generateOAuthURL = async () => {
     try {
         // Use brand config for login URLs
@@ -336,7 +311,7 @@ export const generateOAuthURL = async () => {
             const protocol = window.location.protocol;
             const host = window.location.host;
             const redirectUrl = `${protocol}//${host}`;
-            const scopes = 'trade%20account_manage'
+            const scopes = 'trade%20account_manage';
 
             // Build OAuth URL with PKCE parameters
             // - state: CSRF token for security
@@ -357,7 +332,6 @@ export const generateOAuthURL = async () => {
     const loginUrl = currentHost.includes('staging') ? AUTH_URLS.STAGING.LOGIN : AUTH_URLS.PRODUCTION.LOGIN;
     return `${loginUrl}?redirect=${redirectUrl}`;
 };
-// [/AI]
 
 export const generateSignupURL = () => {
     try {

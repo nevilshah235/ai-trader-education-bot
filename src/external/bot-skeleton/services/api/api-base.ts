@@ -142,15 +142,8 @@ class APIBase {
                 this.api.connection.removeEventListener('open', this.onsocketopen.bind(this));
                 this.api.connection.removeEventListener('close', this.onsocketclose.bind(this));
             }
-            
-            // [AI]
-            // Use authenticated flow if we have auth_info, otherwise use legacy flow
-            const authInfoStr = sessionStorage.getItem('auth_info');
-            const useAuthenticatedFlow = !!authInfoStr;
-            
-            console.log('[API Base] Generating API instance with authenticated flow:', useAuthenticatedFlow);
+
             this.api = await generateDerivApiInstance();
-            // [/AI]
 
             this.api?.connection.addEventListener('open', this.onsocketopen.bind(this));
             this.api?.connection.addEventListener('close', this.onsocketclose.bind(this));
@@ -207,12 +200,7 @@ class APIBase {
     }
 
     reconnectIfNotConnected = () => {
-        // eslint-disable-next-line no-console
-        console.log('connection state: ', this.api?.connection?.readyState);
         if (this.api?.connection?.readyState && this.api?.connection?.readyState > 1) {
-            // eslint-disable-next-line no-console
-            console.log('Info: Connection to the server was closed, trying to reconnect.');
-
             this.reconnection_attempts += 1;
 
             if (this.reconnection_attempts >= this.MAX_RECONNECTION_ATTEMPTS) {

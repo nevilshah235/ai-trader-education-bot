@@ -1,6 +1,5 @@
-// [AI]
-import { useEffect, useState, useCallback } from 'react';
-import { validateCSRFToken, clearCSRFToken } from '@/components/shared/utils/config/config';
+import { useCallback,useEffect, useState } from 'react';
+import { clearCSRFToken,validateCSRFToken } from '@/components/shared/utils/config/config';
 import { clearAuthData } from '@/utils/auth-utils';
 
 /**
@@ -135,10 +134,6 @@ export const useOAuthCallback = (): OAuthCallbackResult => {
                 params: { code, state, error, error_description },
                 error: 'CSRF token validation failed',
             });
-
-            // [COMMENTED FOR DEBUG] Redirect to home page
-            console.log('[DEBUG] Would redirect to home - commented out');
-            // window.location.replace(window.location.origin);
             return;
         }
 
@@ -172,4 +167,3 @@ export const useOAuthCallback = (): OAuthCallbackResult => {
         cleanupURL,
     };
 };
-// [/AI]

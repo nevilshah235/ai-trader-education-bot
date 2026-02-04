@@ -2,7 +2,6 @@ import { getSocketURL } from '@/components/shared';
 import DerivAPIBasic from '@deriv/deriv-api/dist/DerivAPIBasic';
 import APIMiddleware from './api-middleware';
 
-// [AI]
 /**
  * Generates a Deriv API instance with WebSocket connection
  * Now supports async WebSocket URL fetching with authenticated flow
@@ -12,8 +11,6 @@ export const generateDerivApiInstance = async () => {
     // Await the async getSocketURL() function
     const wsURL = await getSocketURL();
 
-    console.log('[WebSocket] Creating connection to:', wsURL);
-
     const deriv_socket = new WebSocket(wsURL);
     const deriv_api = new DerivAPIBasic({
         connection: deriv_socket,
@@ -21,7 +18,6 @@ export const generateDerivApiInstance = async () => {
     });
     return deriv_api;
 };
-// [/AI]
 
 export const getLoginId = () => {
     const login_id = localStorage.getItem('active_loginid');

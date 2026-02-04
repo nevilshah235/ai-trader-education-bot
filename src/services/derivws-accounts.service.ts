@@ -1,4 +1,3 @@
-// [AI]
 import { isProduction } from '@/components/shared';
 import brandConfig from '../../brand.config.json';
 
@@ -60,7 +59,6 @@ export class DerivWSAccountsService {
      */
     static storeAccounts(accounts: DerivAccount[]): void {
         sessionStorage.setItem('deriv_accounts', JSON.stringify(accounts));
-        console.log('[DerivWS] Stored accounts in sessionStorage:', accounts.length);
     }
 
     /**
@@ -97,7 +95,6 @@ export class DerivWSAccountsService {
      */
     static clearStoredAccounts(): void {
         sessionStorage.removeItem('deriv_accounts');
-        console.log('[DerivWS] Cleared stored accounts');
     }
 
     /**
@@ -110,8 +107,6 @@ export class DerivWSAccountsService {
             const baseURL = this.getDerivWSBaseURL();
             const OptionsDir = brandConfig.platform.derivws.directories.options;
             const endpoint = `${baseURL}${OptionsDir}accounts`;
-
-            console.log('[DerivWS] Fetching accounts from:', endpoint);
 
             const response = await fetch(endpoint, {
                 method: 'GET',
@@ -126,17 +121,12 @@ export class DerivWSAccountsService {
 
             const data: AccountsResponse = await response.json();
 
-            console.log('[DerivWS] Accounts response:', data);
-
             // Extract accounts array from nested data structure
             const accounts = data?.data || [];
 
             if (accounts.length === 0) {
                 console.warn('[DerivWS] No accounts found in response');
-            } else {
-                console.log('[DerivWS] ✅ Fetched accounts:', accounts.length);
             }
-
             return accounts;
         } catch (error) {
             console.error('[DerivWS] Error fetching accounts:', error);
@@ -156,9 +146,6 @@ export class DerivWSAccountsService {
             const optionsDir = brandConfig.platform.derivws.directories.options;
             const endpoint = `${baseURL}${optionsDir}accounts/${accountId}/otp`;
 
-            console.log('[DerivWS] Fetching OTP for account:', accountId);
-            console.log('[DerivWS] OTP endpoint:', endpoint);
-
             const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
@@ -172,8 +159,6 @@ export class DerivWSAccountsService {
 
             const otpResponse: OTPResponse = await response.json();
 
-            console.log('[DerivWS] OTP response received');
-
             // Parse the nested JSON string
             const parsedData = JSON.parse(otpResponse.data) as { data: OTPResponseData };
             const websocketURL = parsedData.data.url;
@@ -181,9 +166,6 @@ export class DerivWSAccountsService {
             if (!websocketURL) {
                 throw new Error('WebSocket URL not found in OTP response');
             }
-
-            console.log('[DerivWS] ✅ WebSocket URL obtained');
-
             return websocketURL;
         } catch (error) {
             console.error('[DerivWS] Error fetching OTP:', error);
@@ -203,8 +185,6 @@ export class DerivWSAccountsService {
      */
     static async getAuthenticatedWebSocketURL(accessToken: string): Promise<string> {
         try {
-            console.log('[DerivWS] Starting authenticated WebSocket URL flow');
-
             // Step 1: Fetch accounts list
             const accounts = await this.fetchAccountsList(accessToken);
 
@@ -217,8 +197,6 @@ export class DerivWSAccountsService {
 
             // Step 3: Get default account (first from list)
             const defaultAccount = accounts[0];
-            console.log('[DerivWS] Using default account:', defaultAccount.account_id);
-
             // Step 4: Fetch OTP and WebSocket URL
             const websocketURL = await this.fetchOTPWebSocketURL(accessToken, defaultAccount.account_id);
 
@@ -230,9 +208,6 @@ export class DerivWSAccountsService {
             const pathname = urlObj.pathname.replace(/\/(demo|real)$/, ''); // Remove /demo or /real suffix
 
             const cleanURL = `${hostname}${pathname}`;
-
-            console.log('[DerivWS] ✅ Authenticated WebSocket URL obtained:', cleanURL);
-
             return cleanURL;
         } catch (error) {
             console.error('[DerivWS] Error in authenticated WebSocket URL flow:', error);
@@ -240,4 +215,3 @@ export class DerivWSAccountsService {
         }
     }
 }
-// [/AI]

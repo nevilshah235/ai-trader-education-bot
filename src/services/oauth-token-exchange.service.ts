@@ -1,5 +1,4 @@
-// [AI]
-import { isProduction, getCodeVerifier, clearCodeVerifier } from '@/components/shared';
+import { clearCodeVerifier,getCodeVerifier, isProduction } from '@/components/shared';
 import brandConfig from '../../brand.config.json';
 
 /**
@@ -27,7 +26,6 @@ interface AuthInfo {
     scope?: string;
     refresh_token?: string;
 }
-// [/AI]
 
 /**
  * Service for handling OAuth2 token exchange operations
@@ -42,7 +40,6 @@ export class OAuthTokenExchangeService {
         return brandConfig.platform.auth2_url[environment];
     }
 
-    // [AI]
     /**
      * Get stored authentication info from sessionStorage
      * @returns AuthInfo object or null if not found or expired
@@ -58,7 +55,6 @@ export class OAuthTokenExchangeService {
 
             // Check if token is expired
             if (authInfo.expires_at && Date.now() >= authInfo.expires_at) {
-                console.log('[OAuth] Access token expired');
                 this.clearAuthInfo();
                 return null;
             }
@@ -69,19 +65,14 @@ export class OAuthTokenExchangeService {
             return null;
         }
     }
-    // [/AI]
 
-    // [AI]
     /**
      * Clear authentication info from sessionStorage
      */
     static clearAuthInfo(): void {
         sessionStorage.removeItem('auth_info');
-        console.log('[OAuth] Auth info cleared from sessionStorage');
     }
-    // [/AI]
 
-    // [AI]
     /**
      * Check if user is authenticated (has valid access token)
      * @returns true if authenticated with valid token
@@ -90,9 +81,7 @@ export class OAuthTokenExchangeService {
         const authInfo = this.getAuthInfo();
         return authInfo !== null && !!authInfo.access_token;
     }
-    // [/AI]
 
-    // [AI]
     /**
      * Get the current access token
      * @returns Access token string or null
@@ -101,7 +90,6 @@ export class OAuthTokenExchangeService {
         const authInfo = this.getAuthInfo();
         return authInfo?.access_token || null;
     }
-    // [/AI]
 
     /**
      * Exchange authorization code for access token
@@ -126,10 +114,6 @@ export class OAuthTokenExchangeService {
             const baseURL = this.getOAuth2BaseURL();
             const tokenEndpoint = `${baseURL}token`;
 
-            console.log('[OAuth Token Exchange] Starting token exchange...');
-            console.log('[OAuth Token Exchange] Endpoint:', tokenEndpoint);
-            console.log('[OAuth Token Exchange] Authorization code:', code);
-
             // Retrieve the PKCE code verifier from session storage
             const codeVerifier = getCodeVerifier();
             
@@ -140,9 +124,6 @@ export class OAuthTokenExchangeService {
                     error_description: 'PKCE code verifier not found or expired. Please restart the authentication flow.',
                 };
             }
-
-            console.log('[OAuth Token Exchange] PKCE code verifier retrieved');
-
             // Prepare the request body
             // OAuth2 token exchange with PKCE requires:
             // - grant_type: 'authorization_code'
@@ -176,10 +157,6 @@ export class OAuthTokenExchangeService {
             // Parse response
             const data: TokenExchangeResponse = await response.json();
 
-            // Log the response for debugging
-            console.log('[OAuth Token Exchange] Response status:', response.status);
-            console.log('[OAuth Token Exchange] Response data:', data);
-
             // Check for errors in response
             if (data.error) {
                 console.error('[OAuth Token Exchange] Error:', data.error);
@@ -192,16 +169,8 @@ export class OAuthTokenExchangeService {
 
             // Success - log token info (without exposing the actual token)
             if (data.access_token) {
-                console.log('[OAuth Token Exchange] ✅ Token exchange successful');
-                console.log('[OAuth Token Exchange] Token type:', data.token_type);
-                console.log('[OAuth Token Exchange] Expires in:', data.expires_in, 'seconds');
-                console.log('[OAuth Token Exchange] Scope:', data.scope);
-
                 // Clear the code verifier after successful exchange
                 clearCodeVerifier();
-                console.log('[OAuth Token Exchange] PKCE code verifier cleared');
-
-                // [AI]
                 // Store authentication info in sessionStorage
                 const authInfo: AuthInfo = {
                     access_token: data.access_token,
@@ -218,8 +187,6 @@ export class OAuthTokenExchangeService {
 
                 // Store as JSON string
                 sessionStorage.setItem('auth_info', JSON.stringify(authInfo));
-                console.log('[OAuth Token Exchange] Auth info stored in sessionStorage');
-                // [/AI]
             }
 
             return data;
@@ -243,8 +210,6 @@ export class OAuthTokenExchangeService {
             const baseURL = this.getOAuth2BaseURL();
             const tokenEndpoint = `${baseURL}token`;
 
-            console.log('[OAuth Token Refresh] Starting token refresh...');
-
             const requestBody = new URLSearchParams({
                 grant_type: 'refresh_token',
                 refresh_token: refreshToken,
@@ -261,8 +226,6 @@ export class OAuthTokenExchangeService {
 
             const data: TokenExchangeResponse = await response.json();
 
-            console.log('[OAuth Token Refresh] Response:', data);
-
             if (data.error) {
                 console.error('[OAuth Token Refresh] Error:', data.error);
                 return {
@@ -271,10 +234,7 @@ export class OAuthTokenExchangeService {
                 };
             }
 
-            if (data.access_token) {
-                console.log('[OAuth Token Refresh] ✅ Token refresh successful');
-                
-                // [AI]
+            if (data.access_token) {                
                 // Update authentication info in sessionStorage
                 const authInfo: AuthInfo = {
                     access_token: data.access_token,
@@ -297,8 +257,6 @@ export class OAuthTokenExchangeService {
 
                 // Store updated auth info
                 sessionStorage.setItem('auth_info', JSON.stringify(authInfo));
-                console.log('[OAuth Token Refresh] Auth info updated in sessionStorage');
-                // [/AI]
             }
 
             return data;
