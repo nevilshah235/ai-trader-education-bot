@@ -1,217 +1,227 @@
-# Derivatives Bot
+# InsightX
 
-> A modern platform for automated derivatives trading
-> *feat/agent_analysis* - agent analysis enhancements with visual bot building, real-time analytics, and comprehensive tutorials.
+> AI-powered trader education: build strategies visually, run bots, and learn from every trade with Analyst and Tutor agents.
 
-![Prerequisite](https://img.shields.io/badge/node-20.x-blue.svg)
-![Prerequisite](https://img.shields.io/badge/npm-9.x-blue.svg)
+![Node](https://img.shields.io/badge/node-20.x-blue.svg)
+![npm](https://img.shields.io/badge/npm-9.x-blue.svg)
 ![Build](https://img.shields.io/badge/build-RSBuild-green.svg)
-![Framework](https://img.shields.io/badge/framework-React%2018-blue.svg)
+![React](https://img.shields.io/badge/framework-React%2018-blue.svg)
 
 ## Table of Contents
 
-- [Getting Started](#getting-started)
-    - [Prerequisites](#prerequisites)
-    - [Installation](#installation)
-- [Project Overview](#project-overview)
-    - [Key Features](#key-features)
-    - [Architecture](#architecture)
-- [Development Workflow](#development-workflow)
-    - [Available Scripts](#available-scripts)
-    - [Starting Development Server](#starting-development-server)
-    - [Building for Production](#building-for-production)
-- [Project Structure](#project-structure)
-- [Technologies Used](#technologies-used)
-- [Configuration](#configuration)
-    - [Environment Variables](#environment-variables)
-    - [Deployment Setup](#deployment-setup)
+- [Core problem](#core-problem)
+- [Features](#features)
+- [Design](#design)
+- [Project guidelines](#project-guidelines)
+- [Setup](#setup)
+- [Vercel (frontend)](#vercel-frontend)
+- [Google Cloud (backend)](#google-cloud-backend)
 - [Testing](#testing)
 - [Troubleshooting](#troubleshooting)
-- [Contributing](#contributing)
 
-## Getting Started
+---
 
-### Prerequisites
+## Core problem
 
-Before working with this repository, ensure you have the following installed:
+Traders need to **automate strategies and learn from outcomes** without writing code. Existing tools either assume programming skills or offer no structured way to understand why a trade won or lost. The result:
 
-- **Node.js 20.x** - Required for running the application
-- **npm 9.x** - Package manager
-- **git** - For version control
+- **Barrier to automation** – Strategy logic is locked in code; non-developers can’t build or tweak bots.
+- **Shallow feedback** – P&L and logs don’t explain context, risk, or decision quality.
+- **No personalised education** – Generic tutorials don’t tie lessons to the user’s own trades and strategy intent.
 
-### Installation
+**InsightX** addresses this by combining a **visual bot builder** (Blockly + Deriv API) with an **agent-based education backend**: an **Analyst** agent analyses each trade objectively for learning, and a **Tutor** agent turns that into personalised explanations and follow-up. Traders build strategies in a drag-and-drop workspace, run them against live markets, and get AI-powered analysis and education grounded in their actual trade data and charts.
 
-1. **Clone the repository**
+---
 
-    ```sh
-    git clone <repository-url>
-    cd derivatives-bot
-    ```
+## Features
 
-2. **Install dependencies**
+- **Visual bot builder** – Drag-and-drop Blockly blocks to define strategies; no code required. Integrates with Deriv’s API for real-time data and execution.
+- **Real-time dashboard** – Monitor active bots, performance, and account stats in one place.
+- **Charts and analysis** – SmartCharts/TradingView-style charts for market context and strategy review.
+- **Interactive tutorials** – Step-by-step guides for bot building and trading concepts.
+- **Analyst agent** – Deep, objective analysis of individual trades (what happened, key factors, win/loss drivers) using contract data, strategy intent, and optional chart images. Outputs structured insights for learning.
+- **Tutor agent** – Personalised explanations and follow-up based on Analyst output; reinforces learning from the trader’s own results.
+- **Persistence and RAG** – Backend stores analyses and supports RAG (LangChain/FAISS) for richer, context-aware answers.
+- **Responsive UI** – Usable on desktop and mobile.
+- **Analytics** – RudderStack and GTM for product and usage insights.
+- **Real-time updates** – WebSockets for live market data and bot status.
 
-    ```sh
-    npm install
-    ```
+---
 
-3. **Build the application**
-
-    ```sh
-    npm run build
-    ```
-
-4. **Start the development server**
-
-    ```sh
-    npm start
-    ```
-
-The application will be available at `https://localhost:8443/` (or the port specified by RSBuild).
-
-## Project Overview
-
-Derivatives Bot is a comprehensive platform for automated derivatives trading that provides users with powerful tools to create, test, and deploy trading bots without requiring programming knowledge.
-
-### Key Features
-
-- **🎯 Visual Bot Builder**: Drag-and-drop interface using Blockly for creating trading strategies
-- **📊 Real-time Dashboard**: Monitor active bots, trading performance, and account statistics
-- **📈 Integrated Charts**: SmartCharts integration for advanced market analysis
-- **🎓 Interactive Tutorials**: Step-by-step guides for learning bot building and trading strategies
-- **📱 Responsive Design**: Optimized for both desktop and mobile devices
-- **📊 Analytics Integration**: Comprehensive tracking with RudderStack and GTM
-- **⚡ Real-time Updates**: WebSocket connections for live market data and bot status
+## Design
 
 ### Architecture
 
-The application follows a modular, component-based architecture:
+- **Frontend** – React 18, TypeScript, MobX (RootStore), RSBuild. Blockly for the bot builder; Deriv API for trading. Main app lives in `apps/frontend` and deploys to Vercel (or Cloudflare Pages).
+- **Backend** – FastAPI (Python 3.10+). Analyst and Tutor agents use Google Gemini; PostgreSQL (Cloud SQL in production) for persistence; LangChain + FAISS for RAG. Deploys to Google Cloud Run. See [apps/backend](apps/backend).
+- **Shared** – `packages/shared` holds shared TypeScript (e.g. education API types) used by the frontend.
 
-- **Frontend**: React 18 with TypeScript for type safety
-- **State Management**: MobX for reactive state management
-- **Build System**: RSBuild for fast development and optimized production builds
-- **Styling**: Sass with component-scoped styles
-- **Testing**: Jest with React Testing Library
-- **Code Quality**: ESLint, Prettier, and Husky for consistent code standards
+### Monorepo layout
 
-## Development Workflow
+| Path | Role |
+|------|------|
+| **apps/frontend** | React app: components, pages (Dashboard, Bot Builder, Chart, Tutorials), stores, Blockly/bot-skeleton, RSBuild config. |
+| **apps/backend** | FastAPI app: agents (Analyst, Tutor), db (SQLAlchemy/PostgreSQL), routes, RAG services. |
+| **packages/shared** | Shared TypeScript (education API, strategy intent, etc.). |
+| **scripts/gcloud** | GCP scripts: Cloud Run + Cloud SQL + Secret Manager. See [scripts/gcloud/README.md](scripts/gcloud/README.md). |
 
-### Available Scripts
+### Tech stack
 
-| Command                 | Description                              |
-| ----------------------- | ---------------------------------------- |
-| `npm start`             | Start development server with hot reload |
-| `npm run build`         | Create production build                  |
-| `npm run watch`         | Build in watch mode for development      |
-| `npm run serve`         | Serve production build locally           |
-| `npm test`              | Run Jest tests                           |
-| `npm run coverage`      | Generate test coverage report            |
-| `npm run test:lint`     | Run linting and formatting               |
-| `npm run test:fix`      | Fix linting issues automatically         |
-| `npm run build:analyze` | Analyze bundle size with detailed report |
+**Frontend:** React 18, TypeScript, MobX, React Router, RSBuild, Sass, Blockly, SmartCharts, @deriv-com/ui, @deriv/deriv-api. Jest, React Testing Library, ESLint, Prettier, Husky.
 
-### Starting Development Server
+**Backend:** Python 3.10+, FastAPI, Uvicorn, SQLAlchemy, PostgreSQL (psycopg2), Google GenAI (Gemini), LangChain, FAISS, Pydantic. Managed with [uv](https://docs.astral.sh/uv/).
 
-For local development:
+### Project structure (high level)
 
-```sh
-# Start the development server
-npm start
-
-# Alternative: Start with webpack (if needed)
-npm run start:webpack
+```
+apps/
+├── frontend/           # React UI
+│   ├── src/
+│   │   ├── components/, pages/, stores/
+│   │   ├── external/bot-skeleton/   # Blockly blocks & bot runtime
+│   │   └── ...
+│   ├── rsbuild.config.ts
+│   └── vercel.json
+├── backend/            # Agent Analysis API
+│   ├── src/
+│   │   ├── agents/     # Analyst, Tutor
+│   │   ├── db/         # Models, CRUD, engine
+│   │   ├── routes/     # analysis, transactions
+│   │   ├── services/   # RAG, etc.
+│   │   └── main.py
+│   ├── pyproject.toml
+│   ├── Dockerfile
+│   └── cloudbuild.yaml
+packages/
+└── shared/             # Shared TS types
+scripts/
+└── gcloud/             # Backend deploy (Cloud Run + Cloud SQL)
 ```
 
-The development server includes:
+---
 
-- Hot module replacement
-- Source maps
-- Live reloading
-- Error overlay
+## Project guidelines
 
-### Building for Production
+### Contributing
+
+1. Fork the repo and create a feature branch: `git checkout -b feature/your-feature`.
+2. Make changes, run tests (`npm test`) and lint (`npm run test:lint`).
+3. Commit with a **conventional commit** and a **single-line subject** (e.g. `feat: add X`, `fix: resolve Y`). Do not add `Co-authored-by:` or other trailers unless explicitly required.
+4. Push and open a Pull Request.
+
+### Code standards
+
+- TypeScript: follow project patterns; use functional components and hooks.
+- Write tests for new behaviour; keep existing naming and structure.
+- Update docs when changing behaviour or setup.
+
+### Git workflow
+
+- **Conventional commits:** `feat:`, `fix:`, `docs:`, `style:`, `refactor:`, `test:`.
+- One logical change per commit; single-line subject. Rebase feature branches before merge.
+
+---
+
+## Setup
+
+### Prerequisites
+
+- **Node.js 20.x** and **npm 9.x** – for the frontend.
+- **Python 3.10+** and **[uv](https://docs.astral.sh/uv/)** – only if you run the backend locally.
+- **git** – version control.
+
+### Install and run (frontend)
 
 ```sh
-# Create optimized production build
+git clone <repository-url>
+cd ai-trader-education-bot
+npm install
 npm run build
-
-# Analyze bundle size
-npm run build:analyze
-
-# Serve production build locally for testing
-npm run serve
+npm start
 ```
 
-## Project Structure
+App: **https://localhost:8443/** (or the port RSBuild reports).
 
-```
-src/
-├── components/           # Reusable UI components
-│   ├── button-link/     # Custom button components
-│   ├── error-component/ # Error boundary handling
-│   └── trading-view-chart/ # Chart integration
-├── pages/               # Main application pages
-│   ├── dashboard/       # Bot management dashboard
-│   ├── bot-builder/     # Visual bot building interface
-│   ├── chart/           # Trading charts and analysis
-│   ├── tutorials/       # Interactive learning modules
-│   └── main/            # Main application wrapper
-├── hooks/               # Custom React hooks
-├── analytics/           # Analytics and tracking utilities
-├── external/            # External integrations
-│   └── bot-skeleton/    # Core bot functionality
-├── styles/              # Global styles and theme
-└── xml/                 # Pre-built bot strategy templates
+### Run backend locally (optional)
+
+```sh
+# From repo root
+npm run dev:agent
 ```
 
-### Core Pages
+- Backend runs at **http://localhost:8000**.
+- Copy `apps/backend/.env.example` → `apps/backend/.env` and set **GEMINI_API_KEY** (and optionally DB settings). See [apps/backend/.env.example](apps/backend/.env.example) and [scripts/gcloud/README.md](scripts/gcloud/README.md).
 
-- **Dashboard**: Central hub for managing bots, viewing performance, and accessing quick actions
-- **Bot Builder**: Visual programming interface using Blockly for creating trading strategies
-- **Charts**: Integrated TradingView charts with market analysis tools
-- **Tutorials**: Interactive guides and educational content
+### Environment variables (quick ref)
 
-## Technologies Used
+**Frontend** – `apps/frontend/.env` (or root `.env`):
 
-### Core Technologies
+- **DERIV_APP_ID** (optional) – Use [Deriv third-party OAuth](https://developers.deriv.com/docs/authentication) and public WebSocket API when set. Register at [api.deriv.com](https://api.deriv.com), set OAuth redirect URL to your app origin.
+- **AGENT_ANALYSIS_API_URL** (optional) – When unset, frontend uses same-origin `/api` (proxy to backend). When set (e.g. Cloud Run URL or `http://localhost:8000`), frontend calls the backend at that URL.
 
-- **React 18** - Modern React with Hooks and Concurrent Features
-- **TypeScript** - Static type checking and enhanced developer experience
-- **MobX** - Reactive state management
-- **React Router** - Client-side routing
+**Backend** – `apps/backend/.env`:
 
-### Build & Development
+- **GEMINI_API_KEY** – Required for Analyst/Tutor. For production GCP, see [scripts/gcloud/README.md](scripts/gcloud/README.md) for `GCP_PROJECT`, `GCP_REGION`, `DATABASE_URL`, etc.
 
-- **RSBuild** - Fast build tool with optimized defaults
-- **Sass** - Advanced CSS with variables and mixins
-- **Jest** - Testing framework
-- **ESLint + Prettier** - Code quality and formatting
+### Root scripts
 
-### UI & Visualization
+| Command | Description |
+|--------|-------------|
+| `npm start` | Dev server (frontend, hot reload) |
+| `npm run build` | Production build (frontend) |
+| `npm run watch` | Build in watch mode |
+| `npm run serve` | Serve production build locally |
+| `npm run dev:agent` | Run backend locally (port 8000) |
+| `npm run deploy` | Deploy frontend to Vercel (production) |
+| `npm run deploy:preview` | Deploy frontend to Vercel (preview) |
+| `npm test` | Run Jest tests (frontend) |
+| `npm run coverage` | Coverage report |
+| `npm run test:lint` | Lint + format check |
+| `npm run test:fix` | Auto-fix lint/format |
+| `npm run build:analyze` | Bundle size analysis |
 
-- **Blockly** - Visual programming blocks for bot building
-- **TradingView** - Advanced charting and market analysis
-- **Framer Motion** - Smooth animations and transitions
-- **@deriv-com/ui** - Deriv's design system components
+---
 
-### External Services
+## Vercel (frontend)
 
-- **@deriv-com/analytics** - Analytics and user tracking
-- **@deriv/deriv-api** - Trading API integration
-- **@datadog/browser-rum** - Real user monitoring
+The frontend is one workspace in a **monorepo**. Deploy from the **repository root** so `packages/shared` and root config are available.
 
-## Configuration
+### Config
 
-### Environment Variables
+- **Root directory:** Leave empty in Vercel (use repo root).
+- **Build:** Root [vercel.json](vercel.json) defines:
+  - **Install:** `npm ci`
+  - **Build:** `npm run build`
+  - **Output:** `apps/frontend/dist`
+  - SPA rewrites: `/*` → `index.html`
 
-Copy `.env.example` to `.env` and set values as needed. Key variables (see `rsbuild.config.ts` for the full list):
+### Deploy
 
-- **DERIV_APP_ID** (optional): When set, the app uses [Deriv third-party OAuth](https://developers.deriv.com/docs/authentication) (oauth.deriv.com) and the public WebSocket API. Use this for local testing (e.g. via a tunnel) or when deploying to your own domain (e.g. Vercel). Register an app at [api.deriv.com](https://api.deriv.com) (Dashboard → Applications), set the OAuth Redirect URL to your app origin, and set `DERIV_APP_ID` to the App ID. If unset, the app uses the default dbot auth flow.
+From repo root:
 
-### Deployment Setup
+```sh
+vercel link          # link to your Vercel project
+npm run deploy       # production
+# or
+vercel --prod
+```
 
-#### Cloudflare Pages
+For previews: `npm run deploy:preview` or `vercel` (no `--prod`).
 
-For deploying to Cloudflare Pages, configure the following secrets in GitHub Actions:
+### Important
+
+- Do **not** set Vercel Root Directory to `apps/frontend` and do **not** run `vercel` from inside `apps/frontend`. The root install would fail and the monorepo would be incomplete.
+- If you see `Command "cd ../.. && npm ci" exited with 1`, run from repo root or clear any custom Install Command in Vercel so the root [vercel.json](vercel.json) is used.
+
+### Frontend env on Vercel
+
+Set in Vercel project → Settings → Environment Variables:
+
+- **AGENT_ANALYSIS_API_URL** – Your backend URL (e.g. Cloud Run) so the frontend can call the Agent Analysis API. Omit if you rely on same-origin proxy.
+
+### Alternative: Cloudflare Pages
+
+For Cloudflare Pages, set these in GitHub Actions (or your CI):
 
 ```env
 CLOUDFLARE_ACCOUNT_ID=your_account_id
@@ -219,107 +229,95 @@ CLOUDFLARE_API_TOKEN=your_api_token
 CLOUDFLARE_PROJECT_NAME=your_project_name
 ```
 
-#### Vercel
+---
 
-The frontend is a workspace in this monorepo. Deploy from the **repo root** so the full repo is available for install and build:
+## Google Cloud (backend)
 
-1. In Vercel project settings, leave **Root Directory** empty (use the repository root).
-2. The root [vercel.json](vercel.json) defines install (`npm ci`), build (`npm run build`), and output (`apps/frontend/dist`). SPA rewrites are included.
-3. Link and deploy from the repo root: `vercel link` (link to your project), then `npm run deploy` or `vercel --prod`.
+The backend runs on **Cloud Run** with **Cloud SQL (PostgreSQL)** and **Secret Manager**. Scripts live in **scripts/gcloud/**; full details in [scripts/gcloud/README.md](scripts/gcloud/README.md).
 
-Do not set Root Directory to `apps/frontend` and do not run `vercel` from `apps/frontend`—the install would fail because the monorepo (e.g. `packages/shared`) would not be available. If you still see `Command "cd ../.. && npm ci" exited with 1`, either run **from repo root** (`npm run deploy` or `vercel --prod`) or in Vercel Dashboard → Project → Settings → Build & Development clear the **Install Command** override so the root [vercel.json](vercel.json) is used.
+### Prerequisites
 
-## Testing
+- [gcloud CLI](https://cloud.google.com/sdk/docs/install) installed and logged in (`gcloud auth login`, `gcloud auth application-default login`).
+- **Docker** (for local image build), or use Cloud Build.
+- A **GCP project** and **GEMINI_API_KEY**.
 
-The project uses Jest and React Testing Library for testing:
+### One-time setup (order matters)
+
+Use a single env file: **apps/backend/.env**. Copy from `apps/backend/.env.example` and set at least `GCP_PROJECT`, `GCP_REGION`, `GEMINI_API_KEY`. Scripts source this file when present.
+
+From repo root or `scripts/gcloud/`:
+
+1. **setup-project.sh** – Enable APIs, Artifact Registry, service account `backend-runner` (Cloud SQL Client + Secret Manager).
+2. **setup-database.sh** – Create Cloud SQL PostgreSQL instance, DB `trader_edu`, user; store password and `DATABASE_URL` in Secret Manager. (Can take several minutes.)
+3. **setup-secrets.sh** – Create `GEMINI_API_KEY` secret; grant backend service account access.
+4. **build-and-push.sh** – Build backend Docker image and push to Artifact Registry (needs Docker).
+5. **deploy.sh** – Deploy to Cloud Run with Cloud SQL and secrets. Requires `IMAGE` and `CLOUD_SQL_CONNECTION_NAME` in `apps/backend/.env` (outputs from steps 2 and 4).
+
+Example (first time):
 
 ```sh
-# Run all tests
-npm test
+cp apps/backend/.env.example apps/backend/.env
+# Edit: GCP_PROJECT, GCP_REGION, GEMINI_API_KEY
 
-# Run tests with coverage
-npm run coverage
+cd scripts/gcloud
+./setup-project.sh
+./setup-database.sh
+./setup-secrets.sh
+./build-and-push.sh
 
-# Run tests in watch mode
-npm test -- --watch
-
-# Run specific test file
-npm test -- dashboard.spec.tsx
+# Add to apps/backend/.env (from script output):
+# IMAGE=...
+# CLOUD_SQL_CONNECTION_NAME=...
+./deploy.sh
 ```
 
-### Test Structure
+`deploy.sh` prints the Cloud Run service URL. Set **AGENT_ANALYSIS_API_URL** in Vercel (or your frontend host) to this URL.
 
-- **Unit Tests**: Individual component and utility function tests
-- **Integration Tests**: Testing component interactions
-- **End-to-End**: Testing complete user workflows
+### Build image in GCP (no local Docker)
 
-## Troubleshooting
+```sh
+gcloud builds submit --config=apps/backend/cloudbuild.yaml apps/backend
+```
 
-### Common Issues
+Then set `IMAGE` in `apps/backend/.env` to the built image URL and run `./deploy.sh`.
 
-1. **Development server won't start**
+### Required env for gcloud scripts
 
-    ```sh
-    # Clear npm cache and reinstall
-    npm cache clean --force
-    rm -rf node_modules package-lock.json
-    npm install
-    ```
+| Variable | When | Description |
+|----------|------|-------------|
+| `GCP_PROJECT` | All | GCP project ID. |
+| `GCP_REGION` | All | e.g. `europe-west1`. |
+| `GEMINI_API_KEY` | setup-secrets | Gemini API key for agents. |
+| `IMAGE` | deploy | Full image URL (e.g. from build-and-push or Cloud Build). |
+| `CLOUD_SQL_CONNECTION_NAME` | deploy | `PROJECT:REGION:INSTANCE` (from setup-database.sh). |
 
-2. **Build failures**
-
-    ```sh
-    # Check Node.js version
-    node --version  # Should be 20.x
-
-    # Clear RSBuild cache
-    rm -rf dist
-    npm run build
-    ```
-
-3. **Blockly workspace issues**
-    - Ensure browser supports Web Workers
-    - Check console for JavaScript errors
-    - Try refreshing the page to reinitialize workspace
-
-4. **WebSocket connection problems**
-    - Verify network connectivity
-    - Check if firewall is blocking WebSocket connections
-    - Ensure correct API endpoints in environment variables
-
-### Performance Optimization
-
-- Use `npm run build:analyze` to identify bundle size issues
-- Lazy load components using React.lazy() where appropriate
-- Monitor memory usage in browser DevTools
-- Use React DevTools Profiler to identify rendering bottlenecks
-
-## Contributing
-
-1. **Fork the repository**
-2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
-3. **Make your changes**
-4. **Run tests**: `npm test`
-5. **Run linting**: `npm run test:lint`
-6. **Commit your changes**: `git commit -m 'Add amazing feature'`
-7. **Push to the branch**: `git push origin feature/amazing-feature`
-8. **Open a Pull Request**
-
-### Code Standards
-
-- Follow TypeScript best practices
-- Use functional components with hooks
-- Write comprehensive tests for new features
-- Follow existing naming conventions
-- Update documentation for significant changes
-
-### Git Workflow
-
-- Use conventional commits: `feat:`, `fix:`, `docs:`, `style:`, `refactor:`, `test:`
-- Keep commits atomic and focused
-- Write descriptive commit messages
-- Rebase feature branches before merging
+More options in [apps/backend/.env.example](apps/backend/.env.example) and [scripts/gcloud/README.md](scripts/gcloud/README.md).
 
 ---
 
-For additional support or questions, please refer to the project's issue tracker or contact the development team.
+## Testing
+
+Frontend tests (Jest + React Testing Library) from repo root:
+
+```sh
+npm test
+npm run coverage
+npm test -- --watch
+npm test -- dashboard.spec.tsx
+```
+
+---
+
+## Troubleshooting
+
+- **Dev server won’t start:** `npm cache clean --force`, remove `node_modules` and `package-lock.json`, then `npm install`.
+- **Build fails:** Ensure Node 20.x (`node --version`). Try `rm -rf dist` then `npm run build`.
+- **Blockly issues:** Use a browser with Web Workers; check console; refresh to reinit workspace.
+- **WebSocket/API errors:** Check network and env (DERIV_APP_ID, AGENT_ANALYSIS_API_URL).
+- **Backend / agents not responding:** Ensure `apps/backend/.env` exists with **GEMINI_API_KEY**. For DB features, set `DATABASE_URL` or complete gcloud setup (see [scripts/gcloud/README.md](scripts/gcloud/README.md)).
+
+**Performance:** Use `npm run build:analyze` for bundle size; consider React.lazy and DevTools Profiler for render hotspots.
+
+---
+
+For issues and questions, use the project’s issue tracker or contact the team.
