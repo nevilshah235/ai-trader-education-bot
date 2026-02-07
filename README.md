@@ -1,16 +1,71 @@
-# InsightX
+<div align="center">
+
+<img src="docs/insightx-logo.png" alt="InsightX" width="280" />
+
+</div>
 
 > AI-powered trader education: build strategies visually, run bots, and learn from every trade with Analyst and Tutor agents.
 
-![Node](https://img.shields.io/badge/node-20.x-blue.svg)
-![npm](https://img.shields.io/badge/npm-9.x-blue.svg)
-![Build](https://img.shields.io/badge/build-RSBuild-green.svg)
-![React](https://img.shields.io/badge/framework-React%2018-blue.svg)
+---
+
+> **Note — Frontend base**  
+> The frontend is built on top of the **[Deriv Bot (dbot-reference)](https://github.com/deriv-com/dbot-reference)** GitHub repo (visual trading bot with Blockly, Deriv API, and SmartCharts). InsightX extends it with the Agent Analysis integration (Analyst & Tutor, RAG, chart capture, and AI summary in the UI).
+
+---
+
+<table>
+<tr>
+<td width="50%">
+
+**Frontend & build**
+
+![Node](https://img.shields.io/badge/Node-20.x-339933?style=flat-square&logo=nodedotjs)
+![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript)
+![RSBuild](https://img.shields.io/badge/RSBuild-1.x-009688?style=flat-square)
+![MobX](https://img.shields.io/badge/MobX-6-FF9955?style=flat-square)
+![Blockly](https://img.shields.io/badge/Blockly-10-4285F4?style=flat-square)
+
+</td>
+<td width="50%">
+
+**Backend & data**
+
+![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-009688?style=flat-square&logo=fastapi)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Cloud%20SQL-4169E1?style=flat-square&logo=postgresql)
+![FAISS](https://img.shields.io/badge/FAISS-vector%20store-FF6F00?style=flat-square)
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+**AI & APIs**
+
+![Google Gemini](https://img.shields.io/badge/Google-Gemini-4285F4?style=flat-square&logo=google)
+![NVIDIA NIM](https://img.shields.io/badge/NVIDIA-AI%20Endpoints-76B900?style=flat-square&logo=nvidia)
+![LangChain](https://img.shields.io/badge/LangChain-RAG-1C3C3C?style=flat-square)
+![Deriv](https://img.shields.io/badge/Deriv-API-FF3667?style=flat-square)
+
+</td>
+<td width="50%">
+
+**Deploy & host**
+
+![Vercel](https://img.shields.io/badge/Vercel-frontend-000?style=flat-square&logo=vercel)
+![Google Cloud Run](https://img.shields.io/badge/Cloud%20Run-backend-4285F4?style=flat-square&logo=googlecloud)
+![Cloud SQL](https://img.shields.io/badge/Cloud%20SQL-PostgreSQL-4285F4?style=flat-square)
+
+</td>
+</tr>
+</table>
 
 ## Table of Contents
 
 - [Core problem](#core-problem)
 - [Features](#features)
+- [Platform & APIs at a glance](#platform--apis-at-a-glance)
 - [Design](#design)
 - [Project guidelines](#project-guidelines)
 - [Setup](#setup)
@@ -35,16 +90,80 @@ Traders need to **automate strategies and learn from outcomes** without writing 
 
 ## Features
 
-- **Visual bot builder** – Drag-and-drop Blockly blocks to define strategies; no code required. Integrates with Deriv’s API for real-time data and execution.
-- **Real-time dashboard** – Monitor active bots, performance, and account stats in one place.
-- **Charts and analysis** – SmartCharts/TradingView-style charts for market context and strategy review.
-- **Interactive tutorials** – Step-by-step guides for bot building and trading concepts.
-- **Analyst agent** – Deep, objective analysis of individual trades (what happened, key factors, win/loss drivers) using contract data, strategy intent, and optional chart images. Outputs structured insights for learning.
-- **Tutor agent** – Personalised explanations and follow-up based on Analyst output; reinforces learning from the trader’s own results.
-- **Persistence and RAG** – Backend stores analyses and supports RAG (LangChain/FAISS) for richer, context-aware answers.
-- **Responsive UI** – Usable on desktop and mobile.
-- **Analytics** – RudderStack and GTM for product and usage insights.
-- **Real-time updates** – WebSockets for live market data and bot status.
+- **Analyst agent** – Deep, objective analysis of individual trades: what happened, key factors, win/loss drivers. Uses contract data, strategy intent, behavioral context (e.g. trade index in run, recent outcomes), and optional chart screenshot. Outputs structured JSON (trade_analysis, key_factors, win_loss_assessment) for learning.
+- **Tutor agent** – Personalised trade explanation and learning points from Analyst output. Plain-language explanation plus bullet learning points; explanations saved to disk and linked in DB.
+- **AI summary in UI** – Per-trade “Analyse with AI” (Analyst → Tutor) and “Learn from trade” (RAG) flows. Displays trade explanation, learning recommendation, learning points, and optional source citations (Deriv blog) in the transaction/contract view.
+- **Chart capture for AI** – SmartCharts capture with entry/exit and P/L overlay; screenshot sent with analysis request or stored for later. Backend can reuse stored chart image when re-analysing.
+- **Persistence** – PostgreSQL stores transactions (contract, strategy intent, behavioral summary, optional chart image) and analysis results (Analyst + Tutor outputs).
+- **RAG (Learn from trade)** – Retrieval-augmented learning over ingested content (e.g. Deriv blog). Uses **NVIDIA AI Endpoints** for embeddings (`baai/bge-m3`) and LLM (`meta/llama-3.3-70b-instruct`), with LangChain and FAISS for vector search. “Learn from trade” returns context-aware learning points and source citations; falls back to general guidance when context is insufficient.
+
+---
+
+## Platform & APIs at a glance
+
+*Click a row to expand details.*
+
+<details>
+<summary><b>Frontend host</b> — Vercel</summary>
+
+| | |
+|-|-|
+| **Purpose** | Serve React SPA; root build, output `apps/frontend/dist`. |
+| **Docs** | [Vercel](https://vercel.com/docs) |
+
+</details>
+
+<details>
+<summary><b>Backend host</b> — Google Cloud Run</summary>
+
+| | |
+|-|-|
+| **Purpose** | Run Agent Analysis API (FastAPI); scale-to-zero, Cloud SQL private IP. |
+| **Docs** | [Cloud Run](https://cloud.google.com/run/docs), [scripts/gcloud/README.md](scripts/gcloud/README.md) |
+
+</details>
+
+<details>
+<summary><b>Trading & market data</b> — Deriv API</summary>
+
+| | |
+|-|-|
+| **Purpose** | Auth (OAuth), WebSocket, contract lifecycle, execution. |
+| **Docs** | [Deriv API](https://deriv.com), [developers.deriv.com](https://developers.deriv.com) |
+
+</details>
+
+<details>
+<summary><b>Analyst & Tutor agents</b> — Google Gemini</summary>
+
+| | |
+|-|-|
+| **Purpose** | Trade analysis (structured JSON) and personalised explanations + learning points. |
+| **Env** | `GEMINI_API_KEY` |
+| **Docs** | [Google AI for developers](https://ai.google.dev/) |
+
+</details>
+
+<details>
+<summary><b>RAG (embeddings + LLM)</b> — NVIDIA AI Endpoints + FAISS</summary>
+
+| | |
+|-|-|
+| **Purpose** | “Learn from trade”: embed query + docs (`baai/bge-m3`), retrieve from FAISS, generate answer (`meta/llama-3.3-70b-instruct`). Source citations (e.g. Deriv blog). |
+| **Env** | `API_KEY` (NVIDIA), optional `BINDING_HOST` |
+| **Docs** | [NVIDIA AI Endpoints](https://build.nvidia.com/explore/ai-endpoints) |
+
+</details>
+
+<details>
+<summary><b>Database</b> — PostgreSQL (Cloud SQL)</summary>
+
+| | |
+|-|-|
+| **Purpose** | Transactions (contract, strategy intent, chart image), analysis results (Analyst + Tutor outputs). |
+| **Docs** | [Cloud SQL](https://cloud.google.com/sql/docs) |
+
+</details>
 
 ---
 
@@ -52,8 +171,8 @@ Traders need to **automate strategies and learn from outcomes** without writing 
 
 ### Architecture
 
-- **Frontend** – React 18, TypeScript, MobX (RootStore), RSBuild. Blockly for the bot builder; Deriv API for trading. Main app lives in `apps/frontend` and deploys to Vercel (or Cloudflare Pages).
-- **Backend** – FastAPI (Python 3.10+). Analyst and Tutor agents use Google Gemini; PostgreSQL (Cloud SQL in production) for persistence; LangChain + FAISS for RAG. Deploys to Google Cloud Run. See [apps/backend](apps/backend).
+- **Frontend** – React 18, TypeScript, MobX (RootStore), RSBuild. Blockly for the bot builder; Deriv API for trading. Main app lives in `apps/frontend` and deploys to Vercel. *(Built on top of the [Deriv Bot (dbot-reference)](https://github.com/deriv-com/dbot-reference) repo.)*
+- **Backend** – FastAPI (Python 3.10+). Analyst and Tutor agents use Google Gemini; RAG uses NVIDIA AI Endpoints (embeddings + LLM) and FAISS. PostgreSQL (Cloud SQL in production) for persistence. Deploys to Google Cloud Run. See [apps/backend](apps/backend).
 - **Shared** – `packages/shared` holds shared TypeScript (e.g. education API types) used by the frontend.
 
 ### Monorepo layout
@@ -69,7 +188,7 @@ Traders need to **automate strategies and learn from outcomes** without writing 
 
 **Frontend:** React 18, TypeScript, MobX, React Router, RSBuild, Sass, Blockly, SmartCharts, @deriv-com/ui, @deriv/deriv-api. Jest, React Testing Library, ESLint, Prettier, Husky.
 
-**Backend:** Python 3.10+, FastAPI, Uvicorn, SQLAlchemy, PostgreSQL (psycopg2), Google GenAI (Gemini), LangChain, FAISS, Pydantic. Managed with [uv](https://docs.astral.sh/uv/).
+**Backend:** Python 3.10+, FastAPI, Uvicorn, SQLAlchemy, PostgreSQL (psycopg2), Google GenAI (Gemini), LangChain, langchain-nvidia-ai-endpoints, FAISS, Pydantic. Managed with [uv](https://docs.astral.sh/uv/).
 
 ### Project structure (high level)
 
@@ -161,7 +280,10 @@ npm run dev:agent
 
 **Backend** – `apps/backend/.env`:
 
-- **GEMINI_API_KEY** – Required for Analyst/Tutor. For production GCP, see [scripts/gcloud/README.md](scripts/gcloud/README.md) for `GCP_PROJECT`, `GCP_REGION`, `DATABASE_URL`, etc.
+- **GEMINI_API_KEY** – Required for Analyst/Tutor (Google Gemini).
+- **API_KEY** – Required for RAG (NVIDIA AI Endpoints). Used for embeddings and LLM in “Learn from trade”. Get an API key at [NVIDIA AI Endpoints](https://build.nvidia.com/explore/ai-endpoints).
+- **BINDING_HOST** (optional) – Default `https://integrate.api.nvidia.com/v1`. Override if using a different NVIDIA endpoint.
+- For production GCP, see [scripts/gcloud/README.md](scripts/gcloud/README.md) for `GCP_PROJECT`, `GCP_REGION`, `DATABASE_URL`, and secret names (`nvidia-api-key`, etc.).
 
 ### Root scripts
 
@@ -219,18 +341,6 @@ Set in Vercel project → Settings → Environment Variables:
 
 - **AGENT_ANALYSIS_API_URL** – Your backend URL (e.g. Cloud Run) so the frontend can call the Agent Analysis API. Omit if you rely on same-origin proxy.
 
-### Alternative: Cloudflare Pages
-
-For Cloudflare Pages, set these in GitHub Actions (or your CI):
-
-```env
-CLOUDFLARE_ACCOUNT_ID=your_account_id
-CLOUDFLARE_API_TOKEN=your_api_token
-CLOUDFLARE_PROJECT_NAME=your_project_name
-```
-
----
-
 ## Google Cloud (backend)
 
 The backend runs on **Cloud Run** with **Cloud SQL (PostgreSQL)** and **Secret Manager**. Scripts live in **scripts/gcloud/**; full details in [scripts/gcloud/README.md](scripts/gcloud/README.md).
@@ -243,13 +353,13 @@ The backend runs on **Cloud Run** with **Cloud SQL (PostgreSQL)** and **Secret M
 
 ### One-time setup (order matters)
 
-Use a single env file: **apps/backend/.env**. Copy from `apps/backend/.env.example` and set at least `GCP_PROJECT`, `GCP_REGION`, `GEMINI_API_KEY`. Scripts source this file when present.
+Use a single env file: **apps/backend/.env**. Copy from `apps/backend/.env.example` and set at least `GCP_PROJECT`, `GCP_REGION`, `GEMINI_API_KEY`, and `API_KEY` (NVIDIA, for RAG). Scripts source this file when present.
 
 From repo root or `scripts/gcloud/`:
 
 1. **setup-project.sh** – Enable APIs, Artifact Registry, service account `backend-runner` (Cloud SQL Client + Secret Manager).
 2. **setup-database.sh** – Create Cloud SQL PostgreSQL instance, DB `trader_edu`, user; store password and `DATABASE_URL` in Secret Manager. (Can take several minutes.)
-3. **setup-secrets.sh** – Create `GEMINI_API_KEY` secret; grant backend service account access.
+3. **setup-secrets.sh** – Create secrets for `GEMINI_API_KEY` (agents) and `API_KEY` (NVIDIA, for RAG); grant backend service account access. Set **API_KEY** in `apps/backend/.env` for the NVIDIA API key before running.
 4. **build-and-push.sh** – Build backend Docker image and push to Artifact Registry (needs Docker).
 5. **deploy.sh** – Deploy to Cloud Run with Cloud SQL and secrets. Requires `IMAGE` and `CLOUD_SQL_CONNECTION_NAME` in `apps/backend/.env` (outputs from steps 2 and 4).
 
@@ -257,7 +367,7 @@ Example (first time):
 
 ```sh
 cp apps/backend/.env.example apps/backend/.env
-# Edit: GCP_PROJECT, GCP_REGION, GEMINI_API_KEY
+# Edit: GCP_PROJECT, GCP_REGION, GEMINI_API_KEY, API_KEY (NVIDIA for RAG)
 
 cd scripts/gcloud
 ./setup-project.sh
@@ -287,7 +397,8 @@ Then set `IMAGE` in `apps/backend/.env` to the built image URL and run `./deploy
 |----------|------|-------------|
 | `GCP_PROJECT` | All | GCP project ID. |
 | `GCP_REGION` | All | e.g. `europe-west1`. |
-| `GEMINI_API_KEY` | setup-secrets | Gemini API key for agents. |
+| `GEMINI_API_KEY` | setup-secrets | Gemini API key for Analyst/Tutor. |
+| `API_KEY` | setup-secrets | NVIDIA API key for RAG (stored as secret `nvidia-api-key`). |
 | `IMAGE` | deploy | Full image URL (e.g. from build-and-push or Cloud Build). |
 | `CLOUD_SQL_CONNECTION_NAME` | deploy | `PROJECT:REGION:INSTANCE` (from setup-database.sh). |
 
@@ -315,6 +426,7 @@ npm test -- dashboard.spec.tsx
 - **Blockly issues:** Use a browser with Web Workers; check console; refresh to reinit workspace.
 - **WebSocket/API errors:** Check network and env (DERIV_APP_ID, AGENT_ANALYSIS_API_URL).
 - **Backend / agents not responding:** Ensure `apps/backend/.env` exists with **GEMINI_API_KEY**. For DB features, set `DATABASE_URL` or complete gcloud setup (see [scripts/gcloud/README.md](scripts/gcloud/README.md)).
+- **RAG / “Learn from trade” fails:** Set **API_KEY** (NVIDIA) in `apps/backend/.env`. For Cloud Run, run `setup-secrets.sh` with `API_KEY` set so the `nvidia-api-key` secret is created. Ensure the FAISS index exists (run ingestion: `python -m search.ingestion` from repo root).
 
 **Performance:** Use `npm run build:analyze` for bundle size; consider React.lazy and DevTools Profiler for render hotspots.
 
