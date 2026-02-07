@@ -16,8 +16,8 @@ FULL_IMAGE="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT}/${ARTIFACT_REGISTRY_REPO
 echo "Configuring Docker for Artifact Registry..."
 gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
 
-echo "Building image from apps/backend (linux/amd64 for Cloud Run)..."
-docker build --platform linux/amd64 -t "$FULL_IMAGE" -f "$REPO_ROOT/apps/backend/Dockerfile" "$REPO_ROOT/apps/backend"
+echo "Building image from repo root (includes search/ for RAG)..."
+docker build --platform linux/amd64 -t "$FULL_IMAGE" -f "$REPO_ROOT/apps/backend/Dockerfile" "$REPO_ROOT"
 
 echo "Pushing $FULL_IMAGE..."
 docker push "$FULL_IMAGE"

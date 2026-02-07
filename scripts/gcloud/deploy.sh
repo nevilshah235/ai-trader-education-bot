@@ -13,8 +13,19 @@ SERVICE_NAME="${SERVICE_NAME:-agent-analysis}"
 SERVICE_ACCOUNT_NAME="${SERVICE_ACCOUNT_NAME:-backend-runner}"
 SECRET_NAME_GEMINI="${SECRET_NAME_GEMINI:-gemini-api-key}"
 SECRET_NAME_DATABASE_URL="${SECRET_NAME_DATABASE_URL:-database-url}"
+SECRET_NAME_NVIDIA_API_KEY="${SECRET_NAME_NVIDIA_API_KEY:-nvidia-api-key}"
 
 SA_EMAIL="${SERVICE_ACCOUNT_NAME}@${GCP_PROJECT}.iam.gserviceaccount.com"
+
+SECRETS="GEMINI_API_KEY=${SECRET_NAME_GEMINI}:latest,DATABASE_URL=${SECRET_NAME_DATABASE_URL}:latest,API_KEY=${SECRET_NAME_NVIDIA_API_KEY}:latest"
+
+# RAG / Learn flow — from .env or defaults (search/config.py)
+BINDING="${BINDING:-nvidia}"
+BINDING_HOST="${BINDING_HOST:-https://integrate.api.nvidia.com/v1}"
+EMBEDDING_MODEL="${EMBEDDING_MODEL:-baai/bge-m3}"
+LLM_MODEL="${LLM_MODEL:-meta/llama-3.3-70b-instruct}"
+INDEX_DIR="${INDEX_DIR:-search_index}"
+RAG_ENV="BINDING=$BINDING,BINDING_HOST=$BINDING_HOST,EMBEDDING_MODEL=$EMBEDDING_MODEL,LLM_MODEL=$LLM_MODEL,INDEX_DIR=$INDEX_DIR"
 
 echo "Deploying $SERVICE_NAME to Cloud Run..."
 gcloud run deploy "$SERVICE_NAME" \
@@ -24,7 +35,8 @@ gcloud run deploy "$SERVICE_NAME" \
   --allow-unauthenticated \
   --service-account="$SA_EMAIL" \
   --add-cloudsql-instances="$CLOUD_SQL_CONNECTION_NAME" \
-  --set-secrets="GEMINI_API_KEY=${SECRET_NAME_GEMINI}:latest,DATABASE_URL=${SECRET_NAME_DATABASE_URL}:latest" \
+  --set-secrets="$SECRETS" \
+  --set-env-vars="$RAG_ENV" \
   --port=8000 \
   --no-cpu-throttling \
   --timeout=300

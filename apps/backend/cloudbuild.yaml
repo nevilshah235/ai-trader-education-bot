@@ -1,5 +1,6 @@
 # Cloud Build: build and push Agent Analysis image to Artifact Registry.
-# Run from repo root: gcloud builds submit --config=apps/backend/cloudbuild.yaml apps/backend
+# Run from repo root: gcloud builds submit --config=apps/backend/cloudbuild.yaml .
+# Context must be repo root so search/ (RAG) is included.
 # Substitutions: _REGION (default europe-west1), _REPO (default agent-analysis), _IMAGE_NAME (default agent-analysis)
 substitutions:
   _REGION: europe-west1
@@ -15,7 +16,7 @@ steps:
       - -t
       - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:latest
       - -f
-      - Dockerfile
+      - apps/backend/Dockerfile
       - .
   - name: gcr.io/cloud-builders/docker
     args:
