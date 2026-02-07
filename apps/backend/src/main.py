@@ -2,7 +2,11 @@
 
 import logging
 import os
+import sys
 from pathlib import Path
+
+# Prevent OpenMP crash on macOS when FAISS + other libs both link libomp
+os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
 
 from dotenv import load_dotenv
 
@@ -13,6 +17,10 @@ _root = _backend_root.parents[1]  # backend -> apps -> repo root
 for env_path in (_backend_root / ".env", _root / ".env"):
     if env_path.exists():
         load_dotenv(env_path)
+
+# Make search package importable when running from apps/backend
+if str(_root) not in sys.path:
+    sys.path.insert(0, str(_root))
 
 # Configure logging level (DEBUG, INFO, WARNING, ERROR). Default INFO.
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()

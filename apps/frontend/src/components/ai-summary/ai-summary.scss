@@ -112,6 +112,9 @@
 
   &__sidebar-actions {
     flex-shrink: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
 
   &__placeholder {

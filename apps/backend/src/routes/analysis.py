@@ -3,7 +3,6 @@
 import logging
 import os
 import base64
-import traceback
 from pathlib import Path
 from datetime import datetime
 
@@ -12,12 +11,13 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from db import get_engine, get_session_factory
-
-log = logging.getLogger("agent_analysis.routes.analysis")
 from db.crud_analysis import create_analysis_result
 from db.crud_transactions import get_chart_image_b64, upsert_transaction
 from models.schemas import TradePayload, AnalystOutput, TutorOutput
 from agents import run_analyst, run_tutor
+from services.rag import learn_from_trade, _extract_learning_points
+
+log = logging.getLogger("agent_analysis.routes.analysis")
 
 router = APIRouter(prefix="/api/agent_analysis", tags=["agent_analysis"])
 
@@ -104,6 +104,23 @@ def _persist_payload_and_result(
     db.commit()
 
 
+def _build_trade_analysis_from_payload(payload: TradePayload) -> str:
+    """Build trade context string for RAG from payload."""
+    c = payload.contract
+    parts = [
+        f"{c.contract_type} trade: {c.buy_price} {c.currency} investment, {c.payout} payout, {c.profit} profit.",
+        f"Entry tick: {c.entry_tick or 'N/A'}, Exit tick: {c.exit_tick or 'N/A'}.",
+        f"Shortcode: {c.shortcode}.",
+    ]
+    if payload.behavioral_summary:
+        b = payload.behavioral_summary
+        parts.append(
+            f"Trade {b.trade_index_in_run} of {b.total_trades_in_run_so_far} in run. "
+            f"Recent outcomes: {', '.join(b.recent_outcomes)}."
+        )
+    return " ".join(parts)
+
+
 @router.post("/analyse", response_model=AnalysisResponse)
 async def analyse_trade(
     payload_json: str = Form(..., description="Trade payload as JSON string"),
@@ -181,5 +198,97 @@ async def analyse_trade_json_only(
         trade_explanation=tutor_output.explanation,
         learning_recommendation=analyst_output.win_loss_assessment,
         learning_points=tutor_output.learning_points,
+        explanation_file=explanation_file,
+    )
+
+
+@router.post("/learn-from-trade", response_model=AnalysisResponse)
+async def learn_from_trade_endpoint(
+    payload_json: str = Form(..., description="Trade payload as JSON string"),
+    loginid: str | None = Query(None, description="User login id for persisting to DB"),
+    db: Session = Depends(_get_db),
+):
+    """RAG-grounded learning from trade. Uses knowledge base + trade context."""
+    try:
+        payload = TradePayload.model_validate_json(payload_json)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid payload JSON: {e}")
+
+    trade_analysis = _build_trade_analysis_from_payload(payload)
+    try:
+        rag_result = learn_from_trade(trade_analysis=trade_analysis)
+    except FileNotFoundError as e:
+        log.warning("RAG index missing: %s", e)
+        raise HTTPException(
+            status_code=503,
+            detail="RAG index not found. Run: python -m search.ingestion from repo root.",
+        ) from e
+    except Exception as e:
+        log.exception("RAG error: %s", e)
+        raise HTTPException(status_code=500, detail=f"RAG error: {e!s}") from e
+
+    answer = rag_result.get("answer", "INSUFFICIENT_CONTEXT")
+    learning_points = _extract_learning_points(answer)
+    if not learning_points:
+        learning_points = [answer] if answer and answer != "INSUFFICIENT_CONTEXT" else []
+
+    tutor_output = TutorOutput(explanation=answer, learning_points=learning_points)
+    analyst_output = AnalystOutput(
+        trade_analysis=trade_analysis,
+        key_factors=[],
+        win_loss_assessment=f"RAG-grounded ({rag_result.get('confidence', 'unknown')} confidence)",
+    )
+    explanation_file = _save_explanation(payload.contract.contract_id, tutor_output)
+    try:
+        _persist_payload_and_result(db, payload, analyst_output, tutor_output, explanation_file, loginid)
+    except Exception as e:
+        log.exception("Failed to persist: %s", e)
+        raise HTTPException(status_code=500, detail=f"Failed to persist: {e!s}") from e
+
+    return AnalysisResponse(
+        trade_explanation=answer,
+        learning_recommendation=analyst_output.win_loss_assessment,
+        learning_points=learning_points,
+        explanation_file=explanation_file,
+    )
+
+
+@router.post("/learn-from-trade/json", response_model=AnalysisResponse)
+async def learn_from_trade_json(
+    payload: TradePayload,
+    loginid: str | None = Query(None, description="User login id for persisting to DB"),
+    db: Session = Depends(_get_db),
+):
+    """RAG-grounded learning from trade (JSON body)."""
+    trade_analysis = _build_trade_analysis_from_payload(payload)
+    try:
+        rag_result = learn_from_trade(trade_analysis=trade_analysis)
+    except FileNotFoundError as e:
+        raise HTTPException(
+            status_code=503,
+            detail="RAG index not found. Run: python -m search.ingestion from repo root.",
+        ) from e
+    except Exception as e:
+        log.exception("RAG error: %s", e)
+        raise HTTPException(status_code=500, detail=f"RAG error: {e!s}") from e
+
+    answer = rag_result.get("answer", "INSUFFICIENT_CONTEXT")
+    learning_points = _extract_learning_points(answer)
+    if not learning_points:
+        learning_points = [answer] if answer and answer != "INSUFFICIENT_CONTEXT" else []
+
+    tutor_output = TutorOutput(explanation=answer, learning_points=learning_points)
+    analyst_output = AnalystOutput(
+        trade_analysis=trade_analysis,
+        key_factors=[],
+        win_loss_assessment=f"RAG-grounded ({rag_result.get('confidence', 'unknown')} confidence)",
+    )
+    explanation_file = _save_explanation(payload.contract.contract_id, tutor_output)
+    _persist_payload_and_result(db, payload, analyst_output, tutor_output, explanation_file, loginid)
+
+    return AnalysisResponse(
+        trade_explanation=answer,
+        learning_recommendation=analyst_output.win_loss_assessment,
+        learning_points=learning_points,
         explanation_file=explanation_file,
     )

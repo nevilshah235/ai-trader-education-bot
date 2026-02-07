@@ -12,7 +12,11 @@ import { useDevice } from '@deriv-com/ui';
 import { LabelPairedChevronDownLgRegularIcon, LabelPairedChevronUpLgRegularIcon } from '@deriv/quill-icons/LabelPaired';
 import { DerivLightEmptyCardboardBoxIcon } from '@deriv/quill-icons/Illustration';
 import ThemedScrollbars from '../shared_ui/themed-scrollbars';
-import { buildLearningPayload, fetchAgentAnalysisWithChart } from '@/services/agent-analysis-api';
+import {
+  buildLearningPayload,
+  fetchAgentAnalysisWithChart,
+  fetchLearnFromTrade,
+} from '@/services/agent-analysis-api';
 
 import './ai-summary.scss';
 
@@ -150,6 +154,7 @@ const AiSummary = observer(({ is_drawer_open = false, variant = 'tutorials', onR
   const { isDesktop } = useDevice();
   const is_compact = variant === 'run-panel';
   const [loading, setLoading] = useState(false);
+  const [loadingAction, setLoadingAction] = useState<'analyse' | 'learn' | null>(null);
   const [showWhatIf, setShowWhatIf] = useState(false);
 
   const { selected_contract_id, result, error } = ai_summary;
@@ -178,6 +183,7 @@ const AiSummary = observer(({ is_drawer_open = false, variant = 'tutorials', onR
   const onAnalyse = async () => {
     if (!selected_contract) return;
     setLoading(true);
+    setLoadingAction('analyse');
     ai_summary.setError(null);
     ai_summary.setResult(null);
     try {
@@ -195,6 +201,30 @@ const AiSummary = observer(({ is_drawer_open = false, variant = 'tutorials', onR
       ai_summary.setError(e instanceof Error ? e.message : 'Failed to get AI analysis');
     } finally {
       setLoading(false);
+      setLoadingAction(null);
+    }
+  };
+
+  const onLearnFromTrade = async () => {
+    if (!selected_contract) return;
+    setLoading(true);
+    setLoadingAction('learn');
+    ai_summary.setError(null);
+    ai_summary.setResult(null);
+    try {
+      const payload = buildLearningPayload(
+        selected_contract,
+        run_panel.run_id,
+        contract_trxs.findIndex((t) => t.data === selected_contract) + 1,
+        recent_outcomes
+      );
+      const res = await fetchLearnFromTrade(payload, client?.loginid || undefined);
+      ai_summary.setResult(res);
+    } catch (e) {
+      ai_summary.setError(e instanceof Error ? e.message : 'Failed to get RAG learning');
+    } finally {
+      setLoading(false);
+      setLoadingAction(null);
     }
   };
 
@@ -257,10 +287,25 @@ const AiSummary = observer(({ is_drawer_open = false, variant = 'tutorials', onR
             <div className="ai-summary__sidebar-actions">
               <Button
                 id="ai-summary__analyse-btn"
-                text={loading ? localize('Analysing...') : localize('Analyse')}
+                text={
+                  loading && loadingAction === 'analyse'
+                    ? localize('Analysing...')
+                    : localize('Analyse')
+                }
                 onClick={onAnalyse}
                 disabled={!selected_contract || loading}
                 primary
+              />
+              <Button
+                id="ai-summary__learn-btn"
+                text={
+                  loading && loadingAction === 'learn'
+                    ? localize('Learning...')
+                    : localize('Learn from trade')
+                }
+                onClick={onLearnFromTrade}
+                disabled={!selected_contract || loading}
+                secondary
               />
             </div>
           </aside>

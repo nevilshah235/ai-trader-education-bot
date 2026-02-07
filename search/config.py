@@ -48,18 +48,30 @@ class Settings(BaseSettings):
     chunk_overlap: int = 120
     top_k: int = 10
 
-    # ── Paths (relative to CWD; absolute paths also accepted) ───────
+    # ── Paths (relative to repo root when backend runs from apps/backend) ───────
     data_dir: str = Field(default="data", description="Root folder for HTML sources + url_map.json")
     index_dir: str = Field(default="search_index", description="Folder where FAISS index is persisted")
 
     # ── Derived helpers (not env vars) ───────────────────────────────
+    @staticmethod
+    def _repo_root() -> Path:
+        """Repo root (ai-trader-education-bot/). search/config.py -> parents[2]."""
+        return Path(__file__).resolve().parents[2]
+
+    def _resolve_path(self, value: str) -> Path:
+        """Resolve path: absolute stays; relative resolves against repo root."""
+        p = Path(value)
+        if p.is_absolute():
+            return p
+        return (self._repo_root() / value).resolve()
+
     @property
     def data_path(self) -> Path:
-        return Path(self.data_dir).resolve()
+        return self._resolve_path(self.data_dir)
 
     @property
     def index_path(self) -> Path:
-        return Path(self.index_dir).resolve()
+        return self._resolve_path(self.index_dir)
 
     @property
     def url_map_path(self) -> Path:

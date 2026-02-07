@@ -131,3 +131,28 @@ export async function fetchAgentAnalysisWithChart(
   }
   return res.json();
 }
+
+/**
+ * Learn from trade — RAG-grounded learning using knowledge base + trade context.
+ */
+export async function fetchLearnFromTrade(
+  payload: LearningPayload,
+  loginid?: string
+): Promise<AgentAnalysisResponse> {
+  const base = AGENT_ANALYSIS_API ? `${AGENT_ANALYSIS_API}` : '';
+  const url = new URL(`${base}/api/agent_analysis/learn-from-trade`, window.location.origin);
+  if (loginid) {
+    url.searchParams.set('loginid', loginid);
+  }
+  const form = new FormData();
+  form.append('payload_json', JSON.stringify(payload));
+  const res = await fetch(url.toString(), {
+    method: 'POST',
+    body: form,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.message || `API error ${res.status}`);
+  }
+  return res.json();
+}

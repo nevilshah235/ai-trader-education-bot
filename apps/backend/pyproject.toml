@@ -14,6 +14,17 @@ dependencies = [
     "Pillow>=10.0.0",
     "sqlalchemy>=2.0.0",
     "psycopg2-binary>=2.9.0",
+    # RAG / search
+    "langchain>=0.3",
+    "langchain-community>=0.3",
+    "langchain-openai>=0.3",
+    "langchain-nvidia-ai-endpoints>=0.3",
+    "langchain-text-splitters>=0.3",
+    "faiss-cpu>=1.9",
+    "pydantic-settings>=2.7",
+    "beautifulsoup4>=4.12",
+    "markdownify>=0.14",
+    "lxml>=5.3",
 ]
 
 [tool.uv]
