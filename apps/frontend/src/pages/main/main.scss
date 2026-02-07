@@ -1,6 +1,13 @@
 @use 'components/shared/styles/constants' as *;
 @use 'components/shared/styles/mixins' as *;
 
+.ai-analysis-wrapper {
+    width: 100%;
+    background: var(--general-main-1);
+    padding: 1.6rem;
+    min-height: 400px;
+}
+
 .run-panel {
     // fix for the RTL issue on tab active line
     .dc-tabs__active-line {

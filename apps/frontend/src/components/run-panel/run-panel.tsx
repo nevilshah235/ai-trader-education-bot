@@ -8,7 +8,6 @@ import Modal from '@/components/shared_ui/modal';
 import Money from '@/components/shared_ui/money';
 import Tabs from '@/components/shared_ui/tabs';
 import Text from '@/components/shared_ui/text';
-import AiSummary from '@/components/ai-summary';
 import Summary from '@/components/summary';
 import TradeAnimation from '@/components/trade-animation';
 import Transactions from '@/components/transactions';
@@ -157,11 +156,8 @@ const DrawerContent = ({ active_index, is_drawer_open, active_tour, setActiveTab
                 <div id='db-run-panel-tab__journal' label={<Localize i18n_default_text='Journal' />}>
                     <Journal />
                 </div>
-                <div id='db-run-panel-tab__ai-summary' label={<Localize i18n_default_text='AI Analysis' />}>
-                    <AiSummary is_drawer_open={is_drawer_open} />
-                </div>
             </Tabs>
-            {((is_drawer_open && active_index !== 2 && active_index !== 3) || active_tour) && <StatisticsSummary {...props} />}
+            {((is_drawer_open && active_index !== 2) || active_tour) && <StatisticsSummary {...props} />}
         </>
     );
 };

@@ -1,0 +1,10 @@
+# Trade Explanation
+
+Okay, let's break down what happened with this PUT option trade. You bought the option expecting the asset's price to decrease, but it actually increased from 100.25 to 100.50 during the one-minute contract. Because you had a PUT option, which profits when the underlying asset goes *down*, this upward movement resulted in a loss. It's a good example of how even a small price change in the 'wrong' direction can impact a short-term options trade.
+
+The key takeaway here is the importance of accurately predicting the price movement within the contract's timeframe. One-minute contracts are fast-paced, and even minor volatility can make or break the trade. This trade underscores the risk associated with short-term options, where timing and direction are extremely critical. Don't be discouraged by this loss; view it as a learning opportunity to refine your understanding of market dynamics and improve your timing.
+
+## Learning Points
+1. Price direction is crucial for PUT option trades: the asset price must decrease for the option to be profitable.
+2. Short-term options (like 1-minute contracts) are highly sensitive to small price fluctuations.
+3. Analyze why the asset price moved against your prediction to improve future trade decisions.

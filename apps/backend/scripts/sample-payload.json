@@ -1,0 +1,41 @@
+{
+  "contract": {
+    "contract_id": "sample-001",
+    "buy_price": 10,
+    "payout": 18,
+    "profit": 8,
+    "currency": "USD",
+    "contract_type": "CALL",
+    "shortcode": "CALL_R_100_5M",
+    "date_start": "2025-02-07T10:00:00Z",
+    "date_expiry": "2025-02-07T10:05:00Z",
+    "entry_tick": "250.50",
+    "exit_tick": "251.00"
+  },
+  "strategy_intent": {
+    "intent": {
+      "symbol": "R_100",
+      "trade_type": "CALL",
+      "candle_interval": "5m"
+    },
+    "risk": {
+      "stake_or_payout": "stake",
+      "amount": 10,
+      "currency": "USD"
+    },
+    "exit": {
+      "has_custom_sell_conditions": false,
+      "exit_on_expiry_only": true
+    }
+  },
+  "behavioral_summary": {
+    "run_id": "run-abc",
+    "trade_index_in_run": 3,
+    "total_trades_in_run_so_far": 3,
+    "recent_outcomes": ["win", "loss", "win"]
+  },
+  "past_trades_summaries": [
+    "Won a CALL on R_100; entry 249.50, exit 250.00.",
+    "Lost a PUT on R_50; exited early."
+  ]
+}
