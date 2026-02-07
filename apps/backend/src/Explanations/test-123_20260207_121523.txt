@@ -1,0 +1,8 @@
+# Trade Explanation
+
+Great job on this CALL option trade! You correctly predicted that the price of asset R_100 would increase over the 5-minute period. You bought the option at 250.50 and it closed at 251.00, securing you a profit. This trade highlights the potential of short-term options when you accurately anticipate market direction. Remember, while this win is encouraging, it's important to understand *why* the price moved as it did. Was it a specific news event, a broader market trend, or something else? Understanding the 'why' turns a lucky win into a repeatable strategy.
+
+## Learning Points
+1. A CALL option profits when the price of the asset increases during the contract period.
+2. Short-term options require accurate short-term market analysis and quick decision-making.
+3. While this trade was profitable, analyze the reasons *behind* the price movement to develop a repeatable strategy.

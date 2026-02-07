@@ -31,12 +31,14 @@ import {
 } from '@/utils/trade-type-modal-handler';
 import {
     LabelPairedChartLineCaptionRegularIcon,
+    LabelPairedCircleInfoCaptionBoldIcon,
     LabelPairedObjectsColumnCaptionRegularIcon,
     LabelPairedPuzzlePieceTwoCaptionBoldIcon,
 } from '@deriv/quill-icons/LabelPaired';
 import { LegacyGuide1pxIcon } from '@deriv/quill-icons/Legacy';
 import { Localize, localize } from '@deriv-com/translations';
 import { useDevice } from '@deriv-com/ui';
+import AiSummary from '@/components/ai-summary';
 import AnalysisChartCapture from '@/components/analysis-chart-capture/analysis-chart-capture';
 import RunPanel from '../../components/run-panel';
 import ChartModal from '../chart/chart-modal';
@@ -78,7 +80,7 @@ const AppWrapper = observer(() => {
     const { clear } = summary_card;
     const { DASHBOARD, BOT_BUILDER } = DBOT_TABS;
     const init_render = React.useRef(true);
-    const hash = ['dashboard', 'bot_builder', 'chart', 'tutorial'];
+    const hash = ['dashboard', 'bot_builder', 'chart', 'tutorial', 'ai_analysis'];
     const { isDesktop } = useDevice();
     const location = useLocation();
     const navigate = useNavigate();
@@ -141,7 +143,7 @@ const AppWrapper = observer(() => {
 
     React.useEffect(() => {
         const el_dashboard = document.getElementById('id-dbot-dashboard');
-        const el_tutorial = document.getElementById('id-tutorials');
+        const el_ai_analysis = document.getElementById('id-ai-analysis');
 
         const observer_dashboard = new window.IntersectionObserver(
             ([entry]) => {
@@ -157,7 +159,7 @@ const AppWrapper = observer(() => {
             }
         );
 
-        const observer_tutorial = new window.IntersectionObserver(
+        const observer_right_tab = new window.IntersectionObserver(
             ([entry]) => {
                 if (entry.isIntersecting) {
                     setRightTabShadow(false);
@@ -171,7 +173,7 @@ const AppWrapper = observer(() => {
             }
         );
         observer_dashboard.observe(el_dashboard);
-        observer_tutorial.observe(el_tutorial);
+        if (el_ai_analysis) observer_right_tab.observe(el_ai_analysis);
     });
 
     React.useEffect(() => {
@@ -447,6 +449,26 @@ const AppWrapper = observer(() => {
                                     >
                                         <Tutorial handleTabChange={handleTabChange} />
                                     </Suspense>
+                                </div>
+                            </div>
+                            <div
+                                label={
+                                    <>
+                                        <LabelPairedCircleInfoCaptionBoldIcon
+                                            height='24px'
+                                            width='24px'
+                                            fill='var(--text-general)'
+                                        />
+                                        <Localize i18n_default_text='AI Analysis' />
+                                    </>
+                                }
+                                id='id-ai-analysis'
+                            >
+                                <div className='ai-analysis-wrapper'>
+                                    <AiSummary
+                                        variant="tutorials"
+                                        onRunBotClick={() => handleTabChange(DBOT_TABS.BOT_BUILDER)}
+                                    />
                                 </div>
                             </div>
                         </Tabs>

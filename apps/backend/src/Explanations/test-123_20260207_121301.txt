@@ -1,0 +1,8 @@
+# Trade Explanation
+
+Great job on this CALL option trade! You correctly predicted that the price of asset R_100 would increase over a 5-minute period. By purchasing a CALL option, you secured the right to profit from this increase. The price moved from 250.50 at your entry to 251.00 at the expiry, meaning you were 'in the money' and received the payout. This trade demonstrates a good understanding of how CALL options work and the ability to anticipate short-term price movements.
+
+## Learning Points
+1. CALL options profit when the asset price increases.
+2. The expiry time is crucial: the price must be higher than your entry price at expiry to win.
+3. Successfully predicting short-term price movements can be profitable with options trading.

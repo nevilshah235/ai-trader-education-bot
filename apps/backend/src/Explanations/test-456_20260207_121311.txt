@@ -1,0 +1,8 @@
+# Trade Explanation
+
+Okay, let's break down what happened with this PUT option trade. You bought the PUT expecting the price to go *down* within one minute, but it actually went *up*. Since you were betting against the price increase, your option expired out-of-the-money, resulting in a $5 loss. This highlights the risk in short-term options trading: even a small price fluctuation in the 'wrong' direction can lead to a loss. Remember, predicting short-term price movements is tough, and timing is crucial.
+
+## Learning Points
+1. Short timeframes (like 1 minute) are very sensitive to small price movements, increasing risk.
+2. Accurate price direction prediction is crucial for options trading, especially with PUT or CALL options.
+3. Review the factors that influenced your prediction. Were there any news events or indicators you might have missed that signaled a potential price increase?

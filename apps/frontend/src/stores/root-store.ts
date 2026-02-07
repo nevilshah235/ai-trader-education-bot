@@ -1,3 +1,4 @@
+import AiSummaryStore from './ai-summary-store';
 import AppStore from './app-store';
 import BlocklyStore from './blockly-store';
 import ChartCaptureStore from './chart-capture-store';
@@ -39,6 +40,7 @@ export default class RootStore {
 
     public dashboard: DashboardStore;
 
+    public ai_summary: AiSummaryStore;
     public chart_store: ChartStore;
     public chart_capture: ChartCaptureStore;
     public blockly_store: BlocklyStore;
@@ -82,6 +84,7 @@ export default class RootStore {
         this.dashboard = new DashboardStore(this, this.core);
 
         // need to be at last for dependency
+        this.ai_summary = new AiSummaryStore(this);
         this.chart_store = new ChartStore(this);
         this.chart_capture = new ChartCaptureStore();
         this.blockly_store = new BlocklyStore(this);
