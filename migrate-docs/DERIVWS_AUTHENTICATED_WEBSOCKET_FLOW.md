@@ -9,9 +9,9 @@ This document describes the implementation of the authenticated WebSocket URL fl
 ### Service Layer
 The implementation follows a service-oriented architecture pattern:
 
-- **[`DerivWSAccountsService`](../src/services/derivws-accounts.service.ts)**: Centralized service for all DerivWS account and WebSocket URL operations
-- **[`OAuthTokenExchangeService`](../src/services/oauth-token-exchange.service.ts)**: Manages OAuth token exchange and auth_info storage
-- **[`config.ts`](../src/components/shared/utils/config/config.ts)**: Configuration utilities that orchestrate the services
+- **[`DerivWSAccountsService`](../apps/frontend/src/services/derivws-accounts.service.ts)**: Centralized service for all DerivWS account and WebSocket URL operations
+- **[`OAuthTokenExchangeService`](../apps/frontend/src/services/oauth-token-exchange.service.ts)**: Manages OAuth token exchange and auth_info storage
+- **[`config.ts`](../apps/frontend/src/components/shared/utils/config/config.ts)**: Configuration utilities that orchestrate the services
 
 ### Data Flow
 
@@ -41,7 +41,7 @@ WebSocket connection established with authenticated URL
 
 ### 1. Service File Structure
 
-**File**: [`src/services/derivws-accounts.service.ts`](../src/services/derivws-accounts.service.ts)
+**File**: [`src/services/derivws-accounts.service.ts`](../apps/frontend/src/services/derivws-accounts.service.ts)
 
 This service encapsulates all DerivWS-related functionality:
 
@@ -122,9 +122,9 @@ export class DerivWSAccountsService {
 
 ### 4. WebSocket URL Flow
 
-**File**: [`src/components/shared/utils/config/config.ts`](../src/components/shared/utils/config/config.ts)
+**File**: [`src/components/shared/utils/config/config.ts`](../apps/frontend/src/components/shared/utils/config/config.ts)
 
-The [`getSocketURL()`](../src/components/shared/utils/config/config.ts:166) function orchestrates the complete flow:
+The [`getSocketURL()`](../apps/frontend/src/components/shared/utils/config/config.ts:166) function orchestrates the complete flow:
 
 ```typescript
 export const getSocketURL = async (): Promise<string> => {
@@ -150,7 +150,7 @@ export const getSocketURL = async (): Promise<string> => {
 
 ### 5. WebSocket Connection
 
-**File**: [`src/external/bot-skeleton/services/api/appId.js`](../src/external/bot-skeleton/services/api/appId.js)
+**File**: [`src/external/bot-skeleton/services/api/appId.js`](../apps/frontend/src/external/bot-skeleton/services/api/appId.js)
 
 The WebSocket connection is established using the authenticated URL:
 
@@ -262,18 +262,18 @@ const cleanURL = `${hostname}${pathname}`;
 ## Integration Points
 
 ### 1. OAuth Token Exchange
-- **Service**: [`OAuthTokenExchangeService`](../src/services/oauth-token-exchange.service.ts)
-- **Method**: [`exchangeCodeForToken()`](../src/services/oauth-token-exchange.service.ts:124)
+- **Service**: [`OAuthTokenExchangeService`](../apps/frontend/src/services/oauth-token-exchange.service.ts)
+- **Method**: [`exchangeCodeForToken()`](../apps/frontend/src/services/oauth-token-exchange.service.ts:124)
 - **Storage**: Stores `auth_info` in sessionStorage with access_token
 
 ### 2. API Base Initialization
-- **File**: [`src/external/bot-skeleton/services/api/api-base.ts`](../src/external/bot-skeleton/services/api/api-base.ts)
-- **Method**: [`init()`](../src/external/bot-skeleton/services/api/api-base.ts:125)
-- **Flow**: Checks for auth_info → calls async [`generateDerivApiInstance()`](../src/external/bot-skeleton/services/api/appId.js:13)
+- **File**: [`src/external/bot-skeleton/services/api/api-base.ts`](../apps/frontend/src/external/bot-skeleton/services/api/api-base.ts)
+- **Method**: [`init()`](../apps/frontend/src/external/bot-skeleton/services/api/api-base.ts:125)
+- **Flow**: Checks for auth_info → calls async [`generateDerivApiInstance()`](../apps/frontend/src/external/bot-skeleton/services/api/appId.js:13)
 
 ### 3. Header Component
-- **File**: [`src/components/layout/header/header.tsx`](../src/components/layout/header/header.tsx)
-- **Method**: [`handleLogin()`](../src/components/layout/header/header.tsx:76)
+- **File**: [`src/components/layout/header/header.tsx`](../apps/frontend/src/components/layout/header/header.tsx)
+- **Method**: [`handleLogin()`](../apps/frontend/src/components/layout/header/header.tsx:76)
 - **Flow**: Generates OAuth URL with PKCE → redirects to auth
 
 ## Testing Checklist
