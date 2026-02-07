@@ -5,6 +5,7 @@ import { ProposalOpenContract } from '@deriv/api-types';
 import { TPortfolioPosition, TStores } from '@deriv/stores/types';
 import { TContractInfo } from '../components/summary/summary-card.types';
 import { transaction_elements } from '../constants/transactions';
+import { syncTransactionToBackend } from '../services/transaction-sync';
 import { getStoredItemsByKey, getStoredItemsByUser, setStoredItemsByKey } from '../utils/session-storage';
 import RootStore from './root-store';
 
@@ -173,6 +174,11 @@ export default class TransactionsStore {
         }
 
         this.elements = { ...this.elements }; // force update
+
+        // Best-effort sync to backend for AI analyst agents (fire-and-forget)
+        if (current_account) {
+            syncTransactionToBackend(contract, current_account, run_id);
+        }
     }
 
     clear() {
