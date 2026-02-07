@@ -22,7 +22,9 @@
         "prepare": "husky install",
         "build:analyze": "npm run build:analyze -w frontend",
         "generate:brand-css": "npm run generate:brand-css -w frontend",
-        "dev:agent": "cd apps/backend && uv run --project . sh -c 'cd src && uvicorn main:app --reload --port 8000 --http h11'"
+        "dev:agent": "cd apps/backend && uv run --project . sh -c 'cd src && uvicorn main:app --reload --port 8000 --http h11'",
+        "deploy": "bash scripts/deploy-vercel.sh --prod",
+        "deploy:preview": "bash scripts/deploy-vercel.sh"
     },
     "dependencies": {
         "@deriv-com/analytics": "^1.35.1",

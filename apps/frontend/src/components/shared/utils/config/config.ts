@@ -86,8 +86,8 @@ export const isLocal = () => /localhost(:\d+)?$/i.test(window.location.hostname)
  * When true, use oauth.deriv.com (or staging) + redirect_uri + session tokens.
  */
 export const isDerivThirdPartyAuth = (): boolean => {
-    const appId = process.env.DERIV_APP_ID;
-    return typeof appId === 'string' && appId.length > 0;
+    const appId = (process.env.DERIV_APP_ID || '').trim();
+    return appId.length > 0;
 };
 
 /**
@@ -95,7 +95,7 @@ export const isDerivThirdPartyAuth = (): boolean => {
  * Only valid when isDerivThirdPartyAuth() is true.
  */
 export const getDerivAppId = (): string => {
-    return process.env.DERIV_APP_ID || '';
+    return (process.env.DERIV_APP_ID || '').trim();
 };
 
 /**
@@ -319,7 +319,7 @@ export const generateOAuthURL = async () => {
         if (isDerivThirdPartyAuth()) {
             const appId = getDerivAppId();
             const params = new URLSearchParams({ app_id: appId });
-            const redirectOverride = process.env.DERIV_OAUTH_REDIRECT_URI;
+            const redirectOverride = (process.env.DERIV_OAUTH_REDIRECT_URI || '').trim();
             if (redirectOverride) {
                 params.set('redirect_uri', redirectOverride.replace(/\/$/, ''));
             }

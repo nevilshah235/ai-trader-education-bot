@@ -13,7 +13,8 @@ from dotenv import load_dotenv
 # Load .env: backend first (apps/backend/.env), then repo root (for shared vars)
 _src_dir = Path(__file__).resolve().parent
 _backend_root = _src_dir.parent  # src -> backend (apps/backend)
-_root = _backend_root.parents[1]  # backend -> apps -> repo root
+# In Docker, backend root is /app so parents[1] may not exist; use backend_root as fallback
+_root = _backend_root.parents[1] if len(_backend_root.parents) > 1 else _backend_root
 for env_path in (_backend_root / ".env", _root / ".env"):
     if env_path.exists():
         load_dotenv(env_path)
@@ -60,13 +61,13 @@ class _SuppressInvalidHTTPFilter(logging.Filter):
 
 logging.getLogger("uvicorn.error").addFilter(_SuppressInvalidHTTPFilter())
 
-# Create DB tables and verify connection on startup
+# Create DB tables and verify connection on startup (non-fatal so container can start and expose /health)
 try:
     init_db()
     log.info("Database initialized and available")
 except Exception as e:
     log.error("Database unavailable: %s", e, exc_info=True)
-    raise
+    # Do not raise: app starts and listens so Cloud Run passes startup; /health reports db status
 
 app = FastAPI(
     title="Agent Analysis API",
