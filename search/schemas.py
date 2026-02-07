@@ -65,14 +65,53 @@ class QueryRequest(BaseModel):
     )
 
 
+class DeepDiveLink(BaseModel):
+    """A reference link the trader can click to learn more."""
+
+    title: str = Field(description="Short label describing what the link covers")
+    url: str = Field(description="Full URL to the source article or resource")
+
+
 class RagAnswer(BaseModel):
-    """Structured answer returned by the RAG pipeline."""
+    """Structured, curriculum-style answer returned by the RAG pipeline."""
 
     difficulty: Literal["beginner", "intermediate", "advanced", "unknown"] = Field(
         description="Difficulty level inferred from the question"
     )
+    lesson_title: str = Field(
+        description=(
+            "A short, catchy title for this lesson (e.g. "
+            "'Why Your CALL Won: Reading Momentum Right')"
+        )
+    )
     answer: str = Field(
-        description="Knowledge-grounded answer or 'INSUFFICIENT_CONTEXT'"
+        description=(
+            "The main educational content — story-driven, anchored to the "
+            "trader's own trade, with concrete examples. "
+            "Or 'INSUFFICIENT_CONTEXT' if context is lacking."
+        )
+    )
+    key_takeaway: str = Field(
+        description=(
+            "One memorable sentence the trader should remember from this lesson"
+        )
+    )
+    reflection_question: str = Field(
+        description=(
+            "An interactive question that makes the trader think, "
+            "e.g. 'What would you do if RSI had been above 70 at entry?'"
+        )
+    )
+    deep_dive_links: list[DeepDiveLink] = Field(
+        default_factory=list,
+        description="Clickable links from CONTEXT for further reading",
+    )
+    next_topics: list[str] = Field(
+        default_factory=list,
+        description=(
+            "2-3 suggested next topics that build on this lesson, "
+            "forming a personalised curriculum path"
+        ),
     )
     confidence: Literal["high", "medium", "low"] = Field(
         description="Confidence based on context coverage"

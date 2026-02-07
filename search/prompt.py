@@ -120,8 +120,17 @@ def build_system_prompt(
     if _all or "tone" in sections:
         bullets = "\n".join(f"- {t}" for t in s["tone"])
         parts.append(
-            "## Tone & trader-psychology guidelines (avoid defensiveness)\n" + bullets
+            "## Tone & style (be a coach, not a textbook)\n" + bullets
         )
+
+    # 6b. Engagement rules
+    if _all or "engagement" in sections:
+        eng = s.get("engagement", [])
+        if eng:
+            bullets = "\n".join(f"- {e}" for e in eng)
+            parts.append(
+                "## Engagement & curriculum rules (make learning stick)\n" + bullets
+            )
 
     # 7. Rules
     if _all or "rules" in sections:

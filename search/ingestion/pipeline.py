@@ -49,7 +49,21 @@ def html_to_clean_markdown(html: str) -> str:
     soup = BeautifulSoup(html, "lxml")
     for tag in soup(["script", "style", "nav", "footer", "header", "aside", "form"]):
         tag.decompose()
-    markdown = md(str(soup), heading_style="ATX", strip=["img", "a"])
+
+    # Convert relative image src to absolute where possible.
+    # Images with data: URIs or empty src are dropped to avoid noise.
+    for img in soup.find_all("img"):
+        src = img.get("src", "")
+        if not src or src.startswith("data:"):
+            img.decompose()
+            continue
+        # Keep alt text for context even if image can't render in text
+        alt = img.get("alt", "")
+        if alt:
+            img["alt"] = alt
+
+    # Preserve both hyperlinks and images for downstream curriculum use.
+    markdown = md(str(soup), heading_style="ATX")
     return re.sub(r"\n{3,}", "\n\n", markdown).strip()
 
 

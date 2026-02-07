@@ -108,11 +108,31 @@ def _build_prompt(
 
 
 def _format_docs(docs: List[Document]) -> str:
-    """Build a labelled context string from retrieved chunks."""
+    """Build a labelled context string with URLs the LLM can cite.
+
+    Each chunk is tagged with its source URL (preferred) or filename,
+    plus any header metadata, so the LLM can produce ``deep_dive_links``
+    and ``sources`` from real references.
+    """
     parts: list[str] = []
+    seen: set[str] = set()  # deduplicate exact-same chunk text
     for doc in docs:
-        label = doc.metadata.get("source_url") or doc.metadata.get("filename", "unknown")
-        parts.append(f"[{label}]\n{doc.page_content}")
+        sig = doc.page_content[:200]
+        if sig in seen:
+            continue
+        seen.add(sig)
+
+        url = doc.metadata.get("source_url", "")
+        filename = doc.metadata.get("filename", "unknown")
+        label = url or filename
+
+        # Include header trail if present (gives section context)
+        headers = " > ".join(
+            v for k, v in sorted(doc.metadata.items()) if k.startswith("h")
+        )
+        header_line = f"  Section: {headers}\n" if headers else ""
+
+        parts.append(f"[{label}]\n{header_line}{doc.page_content}")
     return "\n\n".join(parts)
 
 
@@ -249,15 +269,16 @@ def run() -> None:
 
     test_cases = [
         {
-            "question": "What is RSI?",
-            "trade_analysis": "none",
-        },
-        {
             "question": "What are CALL options and when should they be used?",
             "trade_analysis": (
-                "CALL option trade: $10 investment, $19.50 payout. "
-                "Entry tick 250.50, closed at 251.00 within 5-minute timeframe."
+                "CALL option trade on Volatility 75 Index: $10 investment, "
+                "$19.50 payout. Entry tick 250.50, closed at 251.00 within "
+                "5-minute timeframe."
             ),
+        },
+        {
+            "question": "What is RSI and how do I use it?",
+            "trade_analysis": "none",
         },
         {
             "question": "What is the best crypto exchange?",
