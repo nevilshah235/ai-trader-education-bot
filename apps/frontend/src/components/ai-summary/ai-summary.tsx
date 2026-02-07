@@ -16,6 +16,7 @@ import {
   buildLearningPayload,
   fetchAgentAnalysisWithChart,
   fetchLearnFromTrade,
+  type SourceCitation,
 } from '@/services/agent-analysis-api';
 
 import './ai-summary.scss';
@@ -155,7 +156,6 @@ const AiSummary = observer(({ is_drawer_open = false, variant = 'tutorials', onR
   const is_compact = variant === 'run-panel';
   const [loading, setLoading] = useState(false);
   const [loadingAction, setLoadingAction] = useState<'analyse' | 'learn' | null>(null);
-  const [showWhatIf, setShowWhatIf] = useState(false);
 
   const { selected_contract_id, result, error } = ai_summary;
 
@@ -367,43 +367,89 @@ const AiSummary = observer(({ is_drawer_open = false, variant = 'tutorials', onR
               </section>
 
               <aside className="ai-summary__insights">
-                <CollapsibleCard
-                  title={'📋 ' + localize('What Happened')}
-                  defaultOpen
-                  content={<MarkdownContent content={result!.learning_recommendation} />}
-                />
-                <CollapsibleCard
-                  title={'💡 ' + localize('Why This Matters')}
-                  defaultOpen={false}
-                  content={<MarkdownContent content={result!.trade_explanation} />}
-                />
-                {result!.learning_points?.length > 0 && (
-                  <CollapsibleCard
-                    title={'🎯 ' + localize('What This Says About Your Trading')}
-                    defaultOpen={false}
-                    content={
-                      <MarkdownContent
-                        content={result!.learning_points.map((p) => '- ' + p).join('\n')}
+                {result!.sources && result.sources.length > 0 ? (
+                  <div className="ai-summary__learn-course">
+                    <div className="ai-summary__learn-header">
+                      <h3 className="ai-summary__learn-title">
+                        <Localize i18n_default_text="Lesson from your trade" />
+                      </h3>
+                      <p className="ai-summary__learn-subtitle">
+                        <Localize i18n_default_text="Personalised learning based on this trade" />
+                      </p>
+                    </div>
+                    <div className="ai-summary__learn-content">
+                      <MarkdownContent content={result!.trade_explanation} />
+                    </div>
+                    <div className="ai-summary__learn-sources">
+                      <h4 className="ai-summary__learn-sources-title">
+                        <Localize i18n_default_text="Further reading" />
+                      </h4>
+                      {(() => {
+                        type Source = NonNullable<AgentAnalysisResponse['sources']>[number];
+                        const byCategory = (result!.sources ?? []).reduce<Record<string, Source[]>>(
+                          (acc, src) => {
+                            const cat = src.category || 'Learning Resources';
+                            if (!acc[cat]) acc[cat] = [];
+                            acc[cat].push(src);
+                            return acc;
+                          },
+                          {}
+                        );
+                        const order = ['Trading Basics', 'Risk Management', 'Technical Analysis', 'Strategies', 'How-To Guides', 'Market Insights', 'Learning Resources'];
+                        const ordered = order.filter((c) => (byCategory[c]?.length ?? 0) > 0);
+                        const rest = Object.keys(byCategory).filter((c) => !order.includes(c));
+                        const cats = [...ordered, ...rest];
+                        return (
+                          <div className="ai-summary__sources-by-category">
+                            {cats.map((cat) => (
+                              <div key={cat} className="ai-summary__source-category">
+                                <span className="ai-summary__source-category-label">{cat}</span>
+                                <ul className="ai-summary__source-list">
+                                  {(byCategory[cat] ?? []).map((src: SourceCitation, i: number) => (
+                                    <li key={i}>
+                                      <a
+                                        href={src.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="ai-summary__citation-link"
+                                      >
+                                        {src.label}
+                                      </a>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <CollapsibleCard
+                      title={'📋 ' + localize('What Happened')}
+                      defaultOpen
+                      content={<MarkdownContent content={result!.learning_recommendation} />}
+                    />
+                    <CollapsibleCard
+                      title={'💡 ' + localize('Why This Matters')}
+                      defaultOpen={false}
+                      content={<MarkdownContent content={result!.trade_explanation} />}
+                    />
+                    {result!.learning_points?.length > 0 && (
+                      <CollapsibleCard
+                        title={'🎯 ' + localize('What This Says About Your Trading')}
+                        defaultOpen={false}
+                        content={
+                          <MarkdownContent
+                            content={result!.learning_points.map((p) => '- ' + p).join('\n')}
+                          />
+                        }
                       />
-                    }
-                  />
+                    )}
+                  </>
                 )}
-                <div className="ai-summary__whatif">
-                  <button
-                    type="button"
-                    className={classnames('ai-summary__whatif-toggle', {
-                      'ai-summary__whatif-toggle--active': showWhatIf,
-                    })}
-                    onClick={() => setShowWhatIf(!showWhatIf)}
-                  >
-🕐 <Localize i18n_default_text="If duration were longer…" />
-                  </button>
-                  {showWhatIf && (
-                    <p className="ai-summary__whatif-placeholder">
-                      <Localize i18n_default_text="Longer durations typically reduce the impact of short-term noise. Consider testing with 1–5 minute contracts." />
-                    </p>
-                  )}
-                </div>
               </aside>
             </div>
           )}

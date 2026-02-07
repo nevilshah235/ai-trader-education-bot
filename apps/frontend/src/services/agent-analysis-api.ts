@@ -32,12 +32,19 @@ export interface LearningPayload {
 const AGENT_ANALYSIS_API =
   process.env.AGENT_ANALYSIS_API_URL || (typeof window !== 'undefined' ? '' : 'http://localhost:8000');
 
+export interface SourceCitation {
+  url: string;
+  label: string;
+  category?: string;
+}
+
 export interface AgentAnalysisResponse {
   version: number;
   trade_explanation: string;
   learning_recommendation: string;
   learning_points: string[];
   explanation_file?: string;
+  sources?: SourceCitation[];
 }
 
 function toIsoDate(value: string | number | undefined): string {

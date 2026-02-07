@@ -169,6 +169,8 @@ def answer_question(
     if not docs:
         return _default_answer()
 
+    context_str = _format_docs(docs)
+
     prompt = _build_prompt(
         sections=sections,
         difficulty=difficulty,
@@ -182,7 +184,7 @@ def answer_question(
         {
             "question": question,
             "trade_analysis": trade_analysis,
-            "context": _format_docs(docs),
+            "context": context_str,
         }
     )
     return result.model_dump()

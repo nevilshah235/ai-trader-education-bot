@@ -1,5 +1,6 @@
 """FastAPI routes for trade analysis pipeline."""
 
+import json
 import logging
 import os
 import base64
@@ -7,7 +8,7 @@ from pathlib import Path
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, Form
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from db import get_engine, get_session_factory
@@ -38,12 +39,19 @@ EXPLANATIONS_DIR = Path(__file__).resolve().parent.parent / "Explanations"
 EXPLANATIONS_DIR.mkdir(exist_ok=True)
 
 
+class SourceCitation(BaseModel):
+    url: str
+    label: str
+    category: str = "Learning Resources"
+
+
 class AnalysisResponse(BaseModel):
     version: int = 1
     trade_explanation: str
     learning_recommendation: str
     learning_points: list[str]
     explanation_file: str | None = None
+    sources: list[SourceCitation] = Field(default_factory=list)
 
 
 def _save_explanation(contract_id: str, tutor_output: TutorOutput) -> str:
@@ -102,6 +110,48 @@ def _persist_payload_and_result(
         explanation_file=explanation_file,
     )
     db.commit()
+
+
+_DERIV_BLOG_BASE = "https://deriv.com/blog/posts"
+
+
+def _infer_category(filename: str) -> str:
+    """Infer educational category from filename."""
+    slug = filename.replace(".html", "").replace(".htm", "").lower()
+    if "risk" in slug:
+        return "Risk Management"
+    if "technical" in slug:
+        return "Technical Analysis"
+    if "trading_basics" in slug or "basics" in slug:
+        return "Trading Basics"
+    if "martingale" in slug or "strategy" in slug:
+        return "Strategies"
+    if "how-to" in slug or "how_to" in slug:
+        return "How-To Guides"
+    if "earnings" in slug or "gold" in slug or "silver" in slug or "oil" in slug:
+        return "Market Insights"
+    return "Learning Resources"
+
+
+def _filename_to_citation(filename: str) -> SourceCitation:
+    """Convert source filename to URL, label, and category."""
+    slug = filename.replace(".html", "").replace(".htm", "")
+    url = f"{_DERIV_BLOG_BASE}/{slug}"
+    label = slug.replace("-", " ").title()
+    category = _infer_category(filename)
+    return SourceCitation(url=url, label=label, category=category)
+
+
+def _general_fallback_response(trade_analysis: str) -> str:
+    """Return a helpful general response when RAG context is insufficient."""
+    return (
+        "Based on your trade, here are key learning points: "
+        "(1) Every trade is a learning opportunity—review what worked and what didn't. "
+        "(2) Risk management matters: never risk more than 1–2% of your account per trade. "
+        "(3) CALL options profit when price rises above your entry; PUT options when it falls. "
+        "(4) Keep a trading journal to spot patterns in your wins and losses. "
+        "Explore our learning resources for deeper insights on technical indicators, risk management, and trading strategies."
+    )
 
 
 def _build_trade_analysis_from_payload(payload: TradePayload) -> str:
@@ -215,6 +265,15 @@ async def learn_from_trade_endpoint(
         raise HTTPException(status_code=400, detail=f"Invalid payload JSON: {e}")
 
     trade_analysis = _build_trade_analysis_from_payload(payload)
+    query = "What are the key learning points for this trade?"
+
+    log.info(
+        "Learn from trade REQUEST | query=%s | trade_analysis=%s | payload_contract=%s",
+        query,
+        trade_analysis,
+        json.dumps(payload.contract.model_dump(), default=str),
+    )
+
     try:
         rag_result = learn_from_trade(trade_analysis=trade_analysis)
     except FileNotFoundError as e:
@@ -227,10 +286,17 @@ async def learn_from_trade_endpoint(
         log.exception("RAG error: %s", e)
         raise HTTPException(status_code=500, detail=f"RAG error: {e!s}") from e
 
-    answer = rag_result.get("answer", "INSUFFICIENT_CONTEXT")
+    answer = rag_result.get("answer", "")
+    if not answer or answer == "INSUFFICIENT_CONTEXT":
+        answer = _general_fallback_response(trade_analysis)
     learning_points = _extract_learning_points(answer)
     if not learning_points:
-        learning_points = [answer] if answer and answer != "INSUFFICIENT_CONTEXT" else []
+        learning_points = [answer] if answer else []
+
+    log.info(
+        "Learn from trade RESPONSE | %s",
+        json.dumps(rag_result, ensure_ascii=False, indent=2),
+    )
 
     tutor_output = TutorOutput(explanation=answer, learning_points=learning_points)
     analyst_output = AnalystOutput(
@@ -245,11 +311,13 @@ async def learn_from_trade_endpoint(
         log.exception("Failed to persist: %s", e)
         raise HTTPException(status_code=500, detail=f"Failed to persist: {e!s}") from e
 
+    sources = [_filename_to_citation(s) for s in rag_result.get("sources", [])]
     return AnalysisResponse(
         trade_explanation=answer,
         learning_recommendation=analyst_output.win_loss_assessment,
         learning_points=learning_points,
         explanation_file=explanation_file,
+        sources=sources,
     )
 
 
@@ -261,6 +329,15 @@ async def learn_from_trade_json(
 ):
     """RAG-grounded learning from trade (JSON body)."""
     trade_analysis = _build_trade_analysis_from_payload(payload)
+    query = "What are the key learning points for this trade?"
+
+    log.info(
+        "Learn from trade REQUEST | query=%s | trade_analysis=%s | payload_contract=%s",
+        query,
+        trade_analysis,
+        json.dumps(payload.contract.model_dump(), default=str),
+    )
+
     try:
         rag_result = learn_from_trade(trade_analysis=trade_analysis)
     except FileNotFoundError as e:
@@ -272,10 +349,17 @@ async def learn_from_trade_json(
         log.exception("RAG error: %s", e)
         raise HTTPException(status_code=500, detail=f"RAG error: {e!s}") from e
 
-    answer = rag_result.get("answer", "INSUFFICIENT_CONTEXT")
+    answer = rag_result.get("answer", "")
+    if not answer or answer == "INSUFFICIENT_CONTEXT":
+        answer = _general_fallback_response(trade_analysis)
     learning_points = _extract_learning_points(answer)
     if not learning_points:
-        learning_points = [answer] if answer and answer != "INSUFFICIENT_CONTEXT" else []
+        learning_points = [answer] if answer else []
+
+    log.info(
+        "Learn from trade RESPONSE | %s",
+        json.dumps(rag_result, ensure_ascii=False, indent=2),
+    )
 
     tutor_output = TutorOutput(explanation=answer, learning_points=learning_points)
     analyst_output = AnalystOutput(
@@ -286,9 +370,11 @@ async def learn_from_trade_json(
     explanation_file = _save_explanation(payload.contract.contract_id, tutor_output)
     _persist_payload_and_result(db, payload, analyst_output, tutor_output, explanation_file, loginid)
 
+    sources = [_filename_to_citation(s) for s in rag_result.get("sources", [])]
     return AnalysisResponse(
         trade_explanation=answer,
         learning_recommendation=analyst_output.win_loss_assessment,
         learning_points=learning_points,
         explanation_file=explanation_file,
+        sources=sources,
     )

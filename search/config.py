@@ -55,8 +55,8 @@ class Settings(BaseSettings):
     # ── Derived helpers (not env vars) ───────────────────────────────
     @staticmethod
     def _repo_root() -> Path:
-        """Repo root (ai-trader-education-bot/). search/config.py -> parents[2]."""
-        return Path(__file__).resolve().parents[2]
+        """Repo root (ai-trader-education-bot/). search/config.py -> parents[1]."""
+        return Path(__file__).resolve().parents[1]
 
     def _resolve_path(self, value: str) -> Path:
         """Resolve path: absolute stays; relative resolves against repo root."""
