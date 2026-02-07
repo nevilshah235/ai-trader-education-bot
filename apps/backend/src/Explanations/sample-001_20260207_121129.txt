@@ -1,0 +1,8 @@
+# Trade Explanation
+
+Great job on this successful CALL option trade on the R_100 index! You correctly predicted the upward movement within that 5-minute window. This trade highlights the core idea behind CALL options: profiting when the price of an asset increases. The fact that the exit tick was higher than the entry tick at expiry is exactly what you want to see with this type of contract. This win reinforces the potential of directional trading when your timing aligns with the market movement.
+
+## Learning Points
+1. CALL options profit when the asset's price increases by the expiry time.
+2. Expiry-based exits mean the trade's outcome relies solely on the price at the expiry time.
+3. Consider take-profit or stop-loss orders in future trades to manage risk and potential profits more actively.

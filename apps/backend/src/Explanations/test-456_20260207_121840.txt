@@ -1,0 +1,8 @@
+# Trade Explanation
+
+Okay, let's break down this one-minute PUT option trade. You bought a PUT, meaning you predicted the price would go *down* from your entry point of 100.25. Since the price actually went *up* to 100.50 by the time the option expired, the trade resulted in a loss. One-minute options are super fast-paced, and even a small price change against your prediction can lead to a loss, as we saw here. Don't get discouraged—every trade is a learning opportunity!
+
+## Learning Points
+1. PUT options profit when the asset's price decreases below the entry price before expiry.
+2. Very short expiry times, like one minute, are highly sensitive to small price fluctuations.
+3. Carefully consider the risk-reward of short-term options, as small movements can lead to quick losses.

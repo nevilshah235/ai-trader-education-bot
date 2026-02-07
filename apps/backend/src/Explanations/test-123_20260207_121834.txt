@@ -1,0 +1,8 @@
+# Trade Explanation
+
+Great job on this winning CALL option trade on R_100! You correctly predicted that the price would increase over the 5-minute duration. You bought the option at 250.50, and the price rose to 251.00 by the exit time. Because the exit price was higher than your entry price, the CALL option paid out, resulting in a profit for you. This demonstrates a good understanding of directional movement within a short timeframe.
+
+## Learning Points
+1. CALL options profit when the price of the asset increases.
+2. The difference between the entry and exit price, along with the option's payout structure, determines the profit or loss.
+3. Successfully predicting short-term price movements can lead to profitable trades.

@@ -205,11 +205,14 @@ const TradeAnimation = observer(({ className, should_show_overlay }: TTradeAnima
                         }
                         onRunButtonClick();
                         // Map tab index to proper subpage name
-                        const subpageMap: { [key: number]: 'dashboard' | 'bot_builder' | 'charts' | 'tutorials' } = {
+                        const subpageMap: {
+                            [key: number]: 'dashboard' | 'bot_builder' | 'charts' | 'tutorials' | 'ai_analysis';
+                        } = {
                             [DBOT_TABS.DASHBOARD]: 'dashboard',
                             [DBOT_TABS.BOT_BUILDER]: 'bot_builder',
                             [DBOT_TABS.CHART]: 'charts',
                             [DBOT_TABS.TUTORIAL]: 'tutorials',
+                            [DBOT_TABS.AI_ANALYSIS]: 'ai_analysis',
                         };
                         rudderStackSendRunBotEvent({ subpage_name: subpageMap[safeActiveTab] });
                     }}
