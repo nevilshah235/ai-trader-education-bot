@@ -50,7 +50,8 @@ export default defineConfig({
                 POSTHOG_HOST: JSON.stringify(process.env.POSTHOG_HOST),
                 CLIENT_ID: JSON.stringify(process.env.CLIENT_ID),
                 EDUCATION_API_URL: JSON.stringify(process.env.EDUCATION_API_URL),
-                AGENT_ANALYSIS_API_URL: JSON.stringify(process.env.AGENT_ANALYSIS_API_URL || 'http://localhost:8000'),
+                // Use empty string to hit same-origin /api (proxied to backend); set AGENT_ANALYSIS_API_URL for direct backend URL
+                AGENT_ANALYSIS_API_URL: JSON.stringify(process.env.AGENT_ANALYSIS_API_URL ?? ''),
                 DERIV_APP_ID: JSON.stringify(process.env.DERIV_APP_ID),
                 DERIV_OAUTH_REDIRECT_URI: JSON.stringify(process.env.DERIV_OAUTH_REDIRECT_URI),
             },
@@ -101,6 +102,10 @@ export default defineConfig({
         compress: true,
         // Serve index.html for all routes so /redirect/ (Deriv OAuth callback) loads the SPA
         historyApiFallback: true,
+        // Proxy /api to backend to avoid mixed content (HTTPS → HTTP) and CORS issues
+        proxy: {
+            '/api': 'http://localhost:8000',
+        },
     },
     dev: {
         hmr: true,
