@@ -82,6 +82,23 @@ export const isProduction = () => {
 export const isLocal = () => /localhost(:\d+)?$/i.test(window.location.hostname);
 
 /**
+ * Returns true when using Deriv third-party OAuth (own app at api.deriv.com).
+ * When true, use oauth.deriv.com (or staging) + redirect_uri + session tokens.
+ */
+export const isDerivThirdPartyAuth = (): boolean => {
+    const appId = process.env.DERIV_APP_ID;
+    return typeof appId === 'string' && appId.length > 0;
+};
+
+/**
+ * Returns the Deriv App ID for third-party OAuth (for login URL and WebSocket).
+ * Only valid when isDerivThirdPartyAuth() is true.
+ */
+export const getDerivAppId = (): string => {
+    return process.env.DERIV_APP_ID || '';
+};
+
+/**
  * Gets the whoami endpoint URL
  * @param isProductionEnv - Whether the current environment is production
  * @returns Whoami endpoint URL (e.g., "https://auth.deriv.com/sessions/whoami")
@@ -112,20 +129,31 @@ const getDefaultServerURL = () => {
     return isProductionEnv ? WS_SERVERS.PRODUCTION : WS_SERVERS.STAGING;
 };
 
+/** Public WebSocket URL for third-party OAuth (Deriv app at api.deriv.com) */
+const DERIV_WS_PUBLIC_URL = 'wss://ws.derivws.com/websockets/v3';
+const DERIV_WS_PUBLIC_STAGING_URL = 'wss://ws.derivws.com/websockets/v3';
+
 /**
  * Gets the WebSocket URL using the new authenticated flow
- * This function orchestrates the complete flow:
- * 1. Get access token from auth_info
- * 2. Fetch accounts list from derivatives/accounts
- * 3. Store accounts in sessionStorage
- * 4. Get default account (first from list)
- * 5. Fetch OTP and WebSocket URL for that account
+ * - Third-party: return public WS URL with app_id (authorize called after connect)
+ * - Dbot: Get access token from auth_info → DerivWS accounts → OTP → WebSocket URL
  *
  * @returns Promise with WebSocket URL or fallback to default server
  */
 export const getSocketURL = async (): Promise<string> => {
     try {
-        // Check if user is authenticated
+        // Third-party OAuth: use public WebSocket URL; session token sent via authorize() after connect
+        if (isDerivThirdPartyAuth()) {
+            const token =
+                typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('deriv_oauth_token') : null;
+            if (token) {
+                const appId = getDerivAppId();
+                const baseUrl = isProduction() ? DERIV_WS_PUBLIC_URL : DERIV_WS_PUBLIC_STAGING_URL;
+                return `${baseUrl}?app_id=${appId}`;
+            }
+        }
+
+        // Check if user is authenticated (dbot flow)
         const authInfo = OAuthTokenExchangeService.getAuthInfo();
         if (!authInfo || !authInfo.access_token) {
             return getDefaultServerURL();
@@ -286,7 +314,19 @@ export const clearCSRFToken = (): void => {
 
 export const generateOAuthURL = async () => {
     try {
-        // Use brand config for login URLs
+        // Third-party OAuth per Deriv docs: https://oauth.deriv.com/oauth2/authorize?app_id=YOUR_APP_ID
+        // Set OAuth redirect URL in Dashboard → Applications → Application manager (copy/pencil icon).
+        if (isDerivThirdPartyAuth()) {
+            const appId = getDerivAppId();
+            const params = new URLSearchParams({ app_id: appId });
+            const redirectOverride = process.env.DERIV_OAUTH_REDIRECT_URI;
+            if (redirectOverride) {
+                params.set('redirect_uri', redirectOverride.replace(/\/$/, ''));
+            }
+            return `https://oauth.deriv.com/oauth2/authorize?${params.toString()}`;
+        }
+
+        // Use brand config for login URLs (internal/dbot flow)
         const environment = isProduction() ? 'production' : 'staging';
         const hostname = brandConfig?.platform.auth2_url?.[environment];
         const clientId = process.env.CLIENT_ID || '32izC2lBT4MmiSNWuxq2l';

@@ -271,7 +271,11 @@ export default class ClientStore {
             localStorage.removeItem('authToken');
             localStorage.removeItem('clientAccounts');
             localStorage.removeItem('account_type');
-            
+
+            // Clear third-party OAuth session (Deriv app at api.deriv.com)
+            sessionStorage.removeItem('deriv_oauth_token');
+            sessionStorage.removeItem('deriv_accounts');
+
             // Clear sessionStorage
             sessionStorage.clear();
             
