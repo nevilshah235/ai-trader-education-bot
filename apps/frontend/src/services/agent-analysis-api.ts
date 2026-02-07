@@ -83,12 +83,47 @@ export function buildLearningPayload(
   };
 }
 
-export async function fetchAgentAnalysis(payload: LearningPayload): Promise<AgentAnalysisResponse> {
+export async function fetchAgentAnalysis(
+  payload: LearningPayload,
+  loginid?: string
+): Promise<AgentAnalysisResponse> {
   const base = AGENT_ANALYSIS_API ? `${AGENT_ANALYSIS_API}` : '';
-  const res = await fetch(`${base}/api/agent_analysis/analyse/json`, {
+  const url = new URL(`${base}/api/agent_analysis/analyse/json`, window.location.origin);
+  if (loginid) {
+    url.searchParams.set('loginid', loginid);
+  }
+  const res = await fetch(url.toString(), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.message || `API error ${res.status}`);
+  }
+  return res.json();
+}
+
+/**
+ * Analyse trade with optional chart screenshot. Uses FormData; backend loads stored chart by contract_id when not provided.
+ */
+export async function fetchAgentAnalysisWithChart(
+  payload: LearningPayload,
+  options?: { chartBlob?: Blob | null; loginid?: string }
+): Promise<AgentAnalysisResponse> {
+  const base = AGENT_ANALYSIS_API ? `${AGENT_ANALYSIS_API}` : '';
+  const url = new URL(`${base}/api/agent_analysis/analyse`, window.location.origin);
+  if (options?.loginid) {
+    url.searchParams.set('loginid', options.loginid);
+  }
+  const form = new FormData();
+  form.append('payload_json', JSON.stringify(payload));
+  if (options?.chartBlob) {
+    form.append('chart_screenshot', options.chartBlob, 'chart.png');
+  }
+  const res = await fetch(url.toString(), {
+    method: 'POST',
+    body: form,
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));

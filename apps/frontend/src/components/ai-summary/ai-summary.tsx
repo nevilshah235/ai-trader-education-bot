@@ -11,7 +11,7 @@ import { useDevice } from '@deriv-com/ui';
 import ThemedScrollbars from '../shared_ui/themed-scrollbars';
 import {
   buildLearningPayload,
-  fetchAgentAnalysis,
+  fetchAgentAnalysisWithChart,
   type AgentAnalysisResponse,
 } from '@/services/agent-analysis-api';
 
@@ -22,7 +22,7 @@ type TAiSummary = {
 };
 
 const AiSummary = observer(({ is_drawer_open }: TAiSummary) => {
-  const { transactions, run_panel } = useStore();
+  const { transactions, run_panel, client } = useStore();
   const { isDesktop } = useDevice();
   const [selected_contract, setSelectedContract] = useState<TContractInfo | null>(null);
   const [result, setResult] = useState<AgentAnalysisResponse | null>(null);
@@ -50,7 +50,9 @@ const AiSummary = observer(({ is_drawer_open }: TAiSummary) => {
         contract_trxs.findIndex((t) => t.data === selected_contract) + 1,
         recent_outcomes
       );
-      const res = await fetchAgentAnalysis(payload);
+      const res = await fetchAgentAnalysisWithChart(payload, {
+        loginid: client?.loginid || undefined,
+      });
       setResult(res);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to get AI analysis');
@@ -68,7 +70,7 @@ const AiSummary = observer(({ is_drawer_open }: TAiSummary) => {
     >
       <div className="ai-summary__header">
         <Text as="p" size="xs" weight="bold">
-          <Localize i18n_default_text="AI Summary" />
+          <Localize i18n_default_text="AI Analysis" />
         </Text>
         <Text as="p" size="xxs" color="less-prominent">
           <Localize i18n_default_text="Select a trade to get Analyst + Tutor explanations." />

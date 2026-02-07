@@ -147,7 +147,7 @@ const DrawerContent = ({ active_index, is_drawer_open, active_tour, setActiveTab
 
     return (
         <>
-            <Tabs active_index={active_index} onTabItemClick={setActiveTabIndex} top>
+            <Tabs active_index={active_index} onTabItemClick={setActiveTabIndex} top is_scrollable>
                 <div id='db-run-panel-tab__summary' label={<Localize i18n_default_text='Summary' />}>
                     <Summary is_drawer_open={is_drawer_open} />
                 </div>
@@ -157,7 +157,7 @@ const DrawerContent = ({ active_index, is_drawer_open, active_tour, setActiveTab
                 <div id='db-run-panel-tab__journal' label={<Localize i18n_default_text='Journal' />}>
                     <Journal />
                 </div>
-                <div id='db-run-panel-tab__ai-summary' label={<Localize i18n_default_text='AI Summary' />}>
+                <div id='db-run-panel-tab__ai-summary' label={<Localize i18n_default_text='AI Analysis' />}>
                     <AiSummary is_drawer_open={is_drawer_open} />
                 </div>
             </Tabs>
