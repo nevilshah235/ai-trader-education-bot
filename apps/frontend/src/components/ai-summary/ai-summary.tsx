@@ -18,8 +18,19 @@ import {
   fetchLearnFromTrade,
   type SourceCitation,
 } from '@/services/agent-analysis-api';
+import { STRATEGIES } from '@/pages/bot-builder/quick-strategy/config';
 
 import './ai-summary.scss';
+
+const getTradeDisplayName = (
+  contract_type: string | undefined,
+  strategyKey: string | undefined
+): string => {
+  if (strategyKey && STRATEGIES()[strategyKey as keyof ReturnType<typeof STRATEGIES>]?.label) {
+    return STRATEGIES()[strategyKey as keyof ReturnType<typeof STRATEGIES>].label;
+  }
+  return contract_type ?? '—';
+};
 
 const getContractId = (data: TContractInfo) =>
   String(data.transaction_ids?.buy ?? data.contract_id ?? 'unknown');
@@ -151,7 +162,7 @@ type TAiSummary = {
 };
 
 const AiSummary = observer(({ is_drawer_open = false, variant = 'tutorials', onRunBotClick }: TAiSummary) => {
-  const { transactions, run_panel, client, ai_summary } = useStore();
+  const { transactions, run_panel, client, ai_summary, quick_strategy } = useStore();
   const { isDesktop } = useDevice();
   const is_compact = variant === 'run-panel';
   const [loading, setLoading] = useState(false);
@@ -267,7 +278,9 @@ const AiSummary = observer(({ is_drawer_open = false, variant = 'tutorials', onR
                         })}
                         onClick={() => ai_summary.setSelectedContractId(getContractId(data))}
                       >
-                        <span className="ai-summary__trade-direction">{data.contract_type}</span>
+                        <span className="ai-summary__trade-direction">
+                          {getTradeDisplayName(data.contract_type, quick_strategy.selected_strategy_for_notofy)}
+                        </span>
                         <span className="ai-summary__trade-outcome">{win ? 'Win' : 'Loss'}</span>
                         <span
                           className={classnames('ai-summary__trade-pnl', {
@@ -312,8 +325,8 @@ const AiSummary = observer(({ is_drawer_open = false, variant = 'tutorials', onR
 
           {!has_result ? (
             <div className="ai-summary__placeholder">
-              <Text as="p" size="xs" color="less-prominent">
-                <Localize i18n_default_text="Select a trade and click Analyse to view post-trade breakdown." />
+              <Text as="p" size="l" color="less-prominent">
+                <Localize i18n_default_text="Select a trade and click Analyse to view post-trade breakdown, or Learn from trade for personalised lessons." />
               </Text>
             </div>
           ) : (
@@ -360,7 +373,10 @@ const AiSummary = observer(({ is_drawer_open = false, variant = 'tutorials', onR
                       🎯 <Localize i18n_default_text="Direction" />
                     </span>
                     <span className="ai-summary__metric-value">
-                      {selected_contract?.contract_type ?? '—'}
+                      {getTradeDisplayName(
+                        selected_contract?.contract_type,
+                        quick_strategy.selected_strategy_for_notofy
+                      )}
                     </span>
                   </div>
                 </div>

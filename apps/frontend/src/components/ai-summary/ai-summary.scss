@@ -13,7 +13,7 @@
 
   @media (min-width: 768px) {
     display: grid;
-    grid-template-columns: minmax(0, 260px) 1fr;
+    grid-template-columns: minmax(0, 300px) 1fr;
     gap: 1.5rem;
     align-items: start;
   }
@@ -38,16 +38,16 @@
   }
 
   &__sidebar-label {
-    font-size: 1.35rem;
+    font-size: 1.6rem;
     font-weight: 600;
     color: var(--text-general);
   }
 
   &__sidebar-scroll {
-    max-height: 200px;
+    max-height: 260px;
 
     @media (min-width: 768px) {
-      max-height: 280px;
+      max-height: 360px;
     }
   }
 
@@ -123,6 +123,11 @@
     text-align: center;
     color: var(--text-less-prominent);
     order: 2;
+    font-size: 1.25rem;
+
+    p {
+      font-size: inherit;
+    }
 
     @media (min-width: 768px) {
       grid-column: 2;
