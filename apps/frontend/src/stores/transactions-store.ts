@@ -178,6 +178,18 @@ export default class TransactionsStore {
         // Best-effort sync to backend for AI analyst agents (fire-and-forget)
         if (current_account) {
             syncTransactionToBackend(contract, current_account, run_id);
+            // When trade is completed, capture chart and sync again with chart image
+            if (is_completed) {
+                const symbol = this.root_store.chart_store?.symbol || 'R_10';
+                this.root_store.chart_capture
+                    .requestCapture(contract, symbol)
+                    .then(chart_b64 => {
+                        syncTransactionToBackend(contract, current_account, run_id, chart_b64);
+                    })
+                    .catch(() => {
+                        // Ignore capture errors; transaction already synced without chart
+                    });
+            }
         }
     }
 

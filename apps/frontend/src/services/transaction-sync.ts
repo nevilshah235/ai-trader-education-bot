@@ -19,10 +19,11 @@ function toIsoDate(value: string | number | undefined): string {
 export function buildTransactionPayload(
     contract: TContractInfo,
     loginid: string,
-    run_id?: string
+    run_id?: string,
+    chart_image_b64?: string | null
 ): Record<string, unknown> {
     const buy = contract.transaction_ids?.buy ?? contract.contract_id;
-    return {
+    const payload: Record<string, unknown> = {
         loginid,
         contract_id: String(buy ?? contract.contract_id ?? 'unknown'),
         run_id: run_id ?? contract.run_id ?? undefined,
@@ -37,19 +38,25 @@ export function buildTransactionPayload(
         entry_tick: String(contract.entry_tick ?? contract.entry_spot ?? ''),
         exit_tick: String(contract.exit_tick ?? (contract as Record<string, unknown>).exit_spot ?? ''),
     };
+    if (chart_image_b64 != null && chart_image_b64 !== '') {
+        payload.chart_image_b64 = chart_image_b64;
+    }
+    return payload;
 }
 
 /**
  * POST a single transaction to the backend. Fire-and-forget; logs errors.
+ * When chart_image_b64 is provided (e.g. from capture at trade completion), it is stored with the transaction.
  */
 export function syncTransactionToBackend(
     contract: TContractInfo,
     loginid: string,
-    run_id?: string
+    run_id?: string,
+    chart_image_b64?: string | null
 ): void {
     if (!loginid) return;
     const url = `${BACKEND_BASE}/api/transactions`;
-    const body = buildTransactionPayload(contract, loginid, run_id);
+    const body = buildTransactionPayload(contract, loginid, run_id, chart_image_b64);
     fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
