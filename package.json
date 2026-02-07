@@ -5,21 +5,23 @@
     "engines": {
         "node": "20.x"
     },
+    "workspaces": [
+        "apps/frontend",
+        "packages/shared"
+    ],
     "scripts": {
-        "start": "rsbuild dev -o",
-        "build": "rsbuild build",
-        "watch": "rsbuild build --watch",
-        "serve": "http-server dist -p 8443 -a localhost -o",
-        "start:webpack": "webpack serve --open --config webpack.config.js",
-        "build:webpack": "webpack --config webpack.config.js",
-        "test:lint": "prettier --log-level silent --write . && eslint \"./src/**/*.?(js|jsx|ts|tsx)\"",
-        "test:fix": "prettier --log-level silent --write . && eslint --fix \"./src/**/*.?(js|jsx|ts|tsx)\"",
-        "test": "jest",
-        "coverage": "jest --coverage --coverageReporters=json-summary",
-        "coverage:total": "npm run coverage && node -p \"require('./coverage/coverage-summary.json').total.lines.pct\"",
+        "start": "npm run start -w frontend",
+        "build": "npm run build -w frontend",
+        "watch": "npm run watch -w frontend",
+        "serve": "npm run serve -w frontend",
+        "test:lint": "npm run test:lint -w frontend",
+        "test:fix": "npm run test:fix -w frontend",
+        "test": "npm run test -w frontend",
+        "coverage": "npm run coverage -w frontend",
+        "coverage:total": "npm run coverage -w frontend && node -p \"require('./apps/frontend/coverage/coverage-summary.json').total.lines.pct\"",
         "prepare": "husky install",
-        "build:analyze": "BUNDLE_ANALYZE=true rsbuild build",
-        "generate:brand-css": "node scripts/generate-brand-css.js",
+        "build:analyze": "npm run build:analyze -w frontend",
+        "generate:brand-css": "npm run generate:brand-css -w frontend",
         "dev:agent": "cd apps/backend/src && uvicorn main:app --reload --port 8000"
     },
     "dependencies": {

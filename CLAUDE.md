@@ -8,7 +8,7 @@ Derivatives Bot is a visual trading bot platform built with React 18, TypeScript
 
 ## Build System & Commands
 
-The project uses RSBuild for fast builds and development. Key commands:
+The frontend app lives under **apps/frontend**. Root scripts delegate to the frontend workspace (`npm run start -w frontend`, etc.). The project uses RSBuild for fast builds and development. From repo root, key commands:
 
 ```bash
 # Development
@@ -34,7 +34,7 @@ npm run test:fix         # Auto-fix linting issues
 
 ### State Management (MobX)
 
-The application uses MobX for reactive state management through a centralized RootStore pattern. All stores are initialized in [root-store.ts](src/stores/root-store.ts) and connected via the `dbot` object and a `core` object containing `ui`, `client`, and `common` stores.
+The application uses MobX for reactive state management through a centralized RootStore pattern. All stores are initialized in [root-store.ts](apps/frontend/src/stores/root-store.ts) and connected via the `dbot` object and a `core` object containing `ui`, `client`, and `common` stores.
 
 **Key Stores:**
 
@@ -47,12 +47,12 @@ The application uses MobX for reactive state management through a centralized Ro
 - `GoogleDriveStore` - Integration with Google Drive for cloud storage
 - `JournalStore` / `TransactionsStore` - Track bot execution logs and trade history
 
-Access stores via React Context using the `useStore()` hook defined in [hooks/useStore](src/hooks/useStore.ts).
+Access stores via React Context using the `useStore()` hook defined in [hooks/useStore](apps/frontend/src/hooks/useStore.ts).
 
 ### Application Structure
 
-**Entry Point:** [src/main.tsx](src/main.tsx)
-**Root Component:** [src/app/App.tsx](src/app/App.tsx) - Sets up routing, i18n, and providers
+**Entry Point:** [apps/frontend/src/main.tsx](apps/frontend/src/main.tsx)
+**Root Component:** [apps/frontend/src/app/App.tsx](apps/frontend/src/app/App.tsx) - Sets up routing, i18n, and providers
 **Core Providers:**
 
 - `CoreStoreProvider` - Provides RootStore to all components
@@ -67,7 +67,7 @@ Access stores via React Context using the `useStore()` hook defined in [hooks/us
 
 ### Bot Execution Engine
 
-The core bot execution logic resides in [src/external/bot-skeleton/](src/external/bot-skeleton/). This directory contains:
+The core bot execution logic resides in [apps/frontend/src/external/bot-skeleton/](apps/frontend/src/external/bot-skeleton/). This directory contains:
 
 - `scratch/` - Blockly block definitions and implementations
 - `services/` - Bot runtime services (API calls, trade execution, observers)
@@ -84,7 +84,7 @@ The core bot execution logic resides in [src/external/bot-skeleton/](src/externa
 
 ### Technical Indicators
 
-Custom technical indicator implementations are in [src/external/indicators/](src/external/indicators/):
+Custom technical indicator implementations are in [apps/frontend/src/external/indicators/](apps/frontend/src/external/indicators/):
 
 - Simple Moving Average (SMA)
 - Exponential Moving Average (EMA)
@@ -96,7 +96,7 @@ These are JavaScript modules used by bot strategies for market analysis.
 
 ## Path Aliases
 
-Path aliases are configured in both [tsconfig.json](tsconfig.json) and [rsbuild.config.ts](rsbuild.config.ts):
+Path aliases are configured in [apps/frontend/tsconfig.json](apps/frontend/tsconfig.json) and [apps/frontend/rsbuild.config.ts](apps/frontend/rsbuild.config.ts):
 
 ```typescript
 @/components  →  src/components
@@ -117,7 +117,7 @@ Always use these aliases for imports instead of relative paths.
 - **Framework:** Jest with React Testing Library
 - **Environment:** jsdom
 - **Test Pattern:** `*.spec.tsx` or `*.test.ts` files co-located with source
-- **Setup:** [jest.setup.ts](jest.setup.ts) configures @testing-library/jest-dom matchers
+- **Setup:** [apps/frontend/jest.setup.ts](apps/frontend/jest.setup.ts) configures @testing-library/jest-dom matchers
 - **Coverage:** v8 provider for faster coverage generation
 
 When writing tests:
@@ -147,7 +147,7 @@ When writing tests:
 
 ## Environment Variables
 
-Environment variables are injected via RSBuild's `source.define` in [rsbuild.config.ts](rsbuild.config.ts):
+Environment variables are injected via RSBuild's `source.define` in [apps/frontend/rsbuild.config.ts](apps/frontend/rsbuild.config.ts):
 
 - `TRANSLATIONS_CDN_URL` - Translation files CDN
 - `GD_CLIENT_ID`, `GD_APP_ID`, `GD_API_KEY` - Google Drive integration
@@ -177,8 +177,8 @@ These are accessed via `process.env` in the code.
 ### SmartCharts (@deriv-com/smartcharts-champion)
 
 - TradingView-style charts with technical indicators
-- Adapter in [src/adapters/smartcharts-champion/](src/adapters/smartcharts-champion/)
-- Assets copied from node_modules during build (see rsbuild.config.ts output.copy)
+- Adapter in [apps/frontend/src/adapters/smartcharts-champion/](apps/frontend/src/adapters/smartcharts-champion/)
+- Assets copied from node_modules during build (see apps/frontend/rsbuild.config.ts output.copy)
 
 ### Analytics
 
@@ -187,7 +187,7 @@ These are accessed via `process.env` in the code.
 - Datadog RUM for monitoring
 - PostHog for user behavior analytics
 - TrackJS for error tracking
-- Implementations in [src/analytics/](src/analytics/)
+- Implementations in [apps/frontend/src/analytics/](apps/frontend/src/analytics/)
 
 ## Common Development Patterns
 
@@ -205,12 +205,12 @@ const MyComponent = observer(() => {
 
 ### Blockly Block Modifications
 
-When modifying Blockly blocks, look in [src/external/bot-skeleton/scratch/blocks/](src/external/bot-skeleton/scratch/blocks/). Each block category (Advanced, Logic, Math, etc.) has its own subdirectory.
+When modifying Blockly blocks, look in [apps/frontend/src/external/bot-skeleton/scratch/blocks/](apps/frontend/src/external/bot-skeleton/scratch/blocks/). Each block category (Advanced, Logic, Math, etc.) has its own subdirectory.
 
 ### Adding New Stores
 
-1. Create store class in `src/stores/`
-2. Add to RootStore constructor in [root-store.ts](src/stores/root-store.ts)
+1. Create store class in `apps/frontend/src/stores/`
+2. Add to RootStore constructor in [root-store.ts](apps/frontend/src/stores/root-store.ts)
 3. Update RootStore type definition
 4. Initialize with `this` and `this.core` if needed
 
@@ -224,11 +224,11 @@ When modifying Blockly blocks, look in [src/external/bot-skeleton/scratch/blocks
 
 ## Important Files
 
-- [rsbuild.config.ts](rsbuild.config.ts) - Build configuration, aliases, environment variables
-- [jest.config.ts](jest.config.ts) - Test configuration and module name mapping
-- [src/stores/root-store.ts](src/stores/root-store.ts) - Central state management initialization
-- [src/app/App.tsx](src/app/App.tsx) - Application routing and provider setup
-- [src/external/bot-skeleton/](src/external/bot-skeleton/) - Core bot execution engine
+- [apps/frontend/rsbuild.config.ts](apps/frontend/rsbuild.config.ts) - Build configuration, aliases, environment variables
+- [apps/frontend/jest.config.ts](apps/frontend/jest.config.ts) - Test configuration and module name mapping
+- [apps/frontend/src/stores/root-store.ts](apps/frontend/src/stores/root-store.ts) - Central state management initialization
+- [apps/frontend/src/app/App.tsx](apps/frontend/src/app/App.tsx) - Application routing and provider setup
+- [apps/frontend/src/external/bot-skeleton/](apps/frontend/src/external/bot-skeleton/) - Core bot execution engine
 
 ## Node Version
 
