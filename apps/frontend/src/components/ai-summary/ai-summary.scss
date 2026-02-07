@@ -3,89 +3,77 @@
   flex-direction: column;
   height: 100%;
   padding: 1rem;
+  background: var(--general-main-1);
 
   &--empty {
     justify-content: center;
     align-items: center;
+  }
 
-    .ai-summary__header,
-    .ai-summary__trades {
-      width: 100%;
-      max-width: 360px;
-      text-align: center;
-    }
+  @media (min-width: 768px) {
+    display: grid;
+    grid-template-columns: minmax(0, 260px) 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
 
-    .ai-summary__trades {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .ai-summary__scrollbar {
-      width: 100%;
-      display: flex;
-      justify-content: center;
+  &--empty {
+    @media (min-width: 768px) {
+      grid-template-columns: 1fr;
+      place-items: center;
     }
   }
 
-  &__header {
-    margin-bottom: 0.75rem;
-  }
-
-  &__header p {
-    font-size: 1.4rem;
-  }
-
-  &__header p + p {
-    font-size: 1.3rem;
-  }
-
-  &__label {
-    margin-bottom: 0.25rem;
-    font-size: 1.3rem;
-  }
-
-  &__trades {
+  &__sidebar {
     flex: 0 0 auto;
-    margin-bottom: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    order: 1;
 
-    .ai-summary--tutorials & {
-      max-width: 320px;
+    @media (min-width: 768px) {
+      order: 1;
     }
   }
 
-  &__scrollbar {
-    max-height: 120px;
-    margin-top: 0.25rem;
+  &__sidebar-label {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-general);
+  }
 
-    .ai-summary--empty & {
-      margin-top: 0;
-    }
+  &__sidebar-scroll {
+    max-height: 200px;
 
-    .ai-summary--tutorials & {
-      max-height: 180px;
+    @media (min-width: 768px) {
+      max-height: 280px;
     }
   }
 
-  &__list {
+  &__trade-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
   }
 
-  &__trade-item {
+  &__trade-btn {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.5rem 0.75rem;
-    min-height: 2.25rem;
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    text-align: left;
     background: var(--general-section-1);
     border: 1px solid var(--general-section-1);
     border-radius: 6px;
     cursor: pointer;
-    text-align: left;
-    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    font-size: 1.25rem;
+    font-family: inherit;
+    transition: border-color 0.2s, background 0.2s;
 
     &:hover {
       border-color: var(--general-section-2);
@@ -95,30 +83,247 @@
     &--selected {
       border-color: var(--brand-red-coral);
       background: var(--general-section-2);
-      box-shadow: 0 2px 4px rgba(255, 68, 79, 0.15);
+      box-shadow: 0 0 0 1px var(--brand-red-coral);
+    }
+
+    &--win .ai-summary__trade-pnl {
+      color: var(--purchase-main-1, #4bb4b3);
+    }
+
+    &--loss .ai-summary__trade-pnl {
+      color: var(--purchase-main-2, #ff444f);
     }
   }
 
-  &__trade-icon {
-    flex-shrink: 0;
+  &__trade-direction {
+    font-weight: 600;
+    color: var(--text-general);
   }
 
-  &__trade-type {
-    flex: 1;
-    font-size: 1.3rem;
+  &__trade-outcome {
+    font-size: 1.1rem;
+    color: var(--text-less-prominent);
   }
 
   &__trade-pnl {
-    font-size: 1.3rem;
     font-weight: 600;
+    margin-left: auto;
+  }
 
-    &--profit {
+  &__sidebar-actions {
+    flex-shrink: 0;
+  }
+
+  &__placeholder {
+    padding: 2rem 0;
+    text-align: center;
+    color: var(--text-less-prominent);
+    order: 2;
+
+    @media (min-width: 768px) {
+      grid-column: 2;
+    }
+  }
+
+  &__content-area {
+    order: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  &__outcome {
+    flex-shrink: 0;
+  }
+
+  &__insights {
+    flex-shrink: 0;
+  }
+
+  &__outcome {
+    background: var(--general-section-1);
+    border: 1px solid var(--general-section-2);
+    border-radius: 8px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  &__sparkline-wrap {
+    margin-bottom: 0.25rem;
+  }
+
+  &__outcome-header {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 600;
+    font-family: inherit;
+
+    &--win {
       color: var(--purchase-main-1, #4bb4b3);
     }
 
     &--loss {
       color: var(--purchase-main-2, #ff444f);
     }
+  }
+
+  &__metrics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem 2rem;
+  }
+
+  &__metric {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  &__metric-label {
+    font-size: 1.1rem;
+    color: var(--text-less-prominent);
+  }
+
+  &__metric-value {
+    font-size: 1.3rem;
+    font-weight: 500;
+    color: var(--text-general);
+  }
+
+  &__sparkline-wrap {
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  &__sparkline-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  &__sparkline-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.15rem;
+    color: var(--text-less-prominent);
+  }
+
+  &__sparkline-label {
+    font-weight: 500;
+  }
+
+  &__sparkline {
+    width: 100%;
+    height: 48px;
+    min-height: 2px;
+  }
+
+  &__insights {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  &__insight-card {
+    background: var(--general-section-1);
+    border: 1px solid var(--general-section-2);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  &__insight-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.85rem 1rem;
+    text-align: left;
+    font-size: 1.25rem;
+    font-weight: 600;
+    font-family: inherit;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--text-general);
+    transition: background 0.2s;
+
+    &:hover {
+      background: var(--general-section-2);
+    }
+  }
+
+  &__insight-card-title {
+    color: var(--text-general);
+  }
+
+  &__insight-card-content {
+    padding: 0 1rem 1rem;
+    font-size: 1.25rem;
+    line-height: 1.5;
+    color: var(--text-general);
+  }
+
+  &__markdown-body {
+    margin: 0;
+    padding: 0;
+  }
+
+  &__markdown-p {
+    margin: 0 0 0.5rem;
+  }
+
+  &__markdown-ul,
+  &__markdown-ol {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+  }
+
+  &__markdown-li {
+    margin-bottom: 0.35rem;
+  }
+
+  &__whatif {
+    margin-top: 0.5rem;
+  }
+
+  &__whatif-toggle {
+    display: block;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: 1.2rem;
+    font-family: inherit;
+    color: var(--text-general);
+    background: var(--general-section-1);
+    border: 1px dashed var(--general-section-2);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+
+    &:hover {
+      border-color: var(--general-section-3);
+      background: var(--general-section-2);
+    }
+
+    &--active {
+      border-style: solid;
+    }
+  }
+
+  &__whatif-placeholder {
+    margin: 0.5rem 0 0;
+    padding: 0.75rem 1rem;
+    font-size: 1.2rem;
+    line-height: 1.5;
+    color: var(--text-less-prominent);
+    background: var(--general-section-1);
+    border-radius: 6px;
   }
 
   &__empty {
@@ -145,154 +350,18 @@
     margin-top: 0.5rem;
   }
 
-  &__actions {
-    margin-bottom: 0.75rem;
-
-    .ai-summary--tutorials & {
-      max-width: 320px;
-    }
-  }
-
   &__error {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
     padding: 0.75rem;
-    margin-bottom: 0.5rem;
+    margin-top: 0.5rem;
     border-radius: 8px;
     background: rgba(255, 71, 87, 0.1);
+    grid-column: 1 / -1;
   }
 
   &__error-retry {
     align-self: flex-start;
-  }
-
-  &__result {
-    flex: 1;
-    min-height: 120px;
-
-    .ai-summary--tutorials & {
-      min-height: 180px;
-    }
-  }
-
-  &__result-content {
-    padding: 0.5rem 0;
-    white-space: pre-wrap;
-    word-break: break-word;
-  }
-
-  &__result-card {
-    padding: 1rem;
-    margin-bottom: 1rem;
-    background: var(--general-section-1);
-    border-radius: 8px;
-    border: 1px solid var(--general-section-2);
-
-    &:last-child {
-      margin-bottom: 0;
-    }
-  }
-
-  &__result-card-title {
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-  }
-
-  &__result-card-title-icon {
-    font-size: 1.6rem;
-  }
-
-  &__result-card--analyst &__result-card-title {
-    color: var(--brand-info, #377cfc);
-  }
-
-  &__result-card--tutor &__result-card-title {
-    color: var(--brand-success, #4bb4b3);
-  }
-
-  &__result-card--learning &__result-card-title {
-    color: var(--brand-warning, #ffad3a);
-  }
-
-  &__markdown {
-    font-size: 1.3rem;
-    line-height: 1.5;
-    word-break: break-word;
-  }
-
-  &__markdown-body {
-    margin: 0;
-    padding: 0;
-  }
-
-  &__markdown-p {
-    margin: 0 0 0.5rem;
-  }
-
-  &__markdown-ul,
-  &__markdown-ol {
-    margin: 0.5rem 0;
-    padding-left: 1.5rem;
-  }
-
-  &__markdown-li {
-    margin-bottom: 0.35rem;
-  }
-
-  &__markdown-strong {
-    font-weight: 600;
-  }
-
-  &__recommendation,
-  &__explanation {
-    margin-bottom: 0;
-  }
-
-  &__points-wrapper {
-    margin: 0;
-  }
-
-  &--tutorials.ai-summary--has-result {
-    @media (min-width: 768px) {
-      display: grid;
-      grid-template-columns: minmax(0, 320px) 1fr;
-      gap: 1.5rem;
-      align-items: start;
-    }
-  }
-
-  &--tutorials.ai-summary--has-result &__header {
-    @media (min-width: 768px) {
-      grid-column: 1 / -1;
-    }
-  }
-
-  &--tutorials.ai-summary--has-result &__trades {
-    @media (min-width: 768px) {
-      grid-column: 1;
-    }
-  }
-
-  &--tutorials.ai-summary--has-result &__actions {
-    @media (min-width: 768px) {
-      grid-column: 1;
-    }
-  }
-
-  &--tutorials.ai-summary--has-result &__error {
-    @media (min-width: 768px) {
-      grid-column: 1 / -1;
-    }
-  }
-
-  &--tutorials.ai-summary--has-result &__result {
-    @media (min-width: 768px) {
-      grid-column: 2;
-      grid-row: 2 / 5;
-      align-self: stretch;
-    }
   }
 }

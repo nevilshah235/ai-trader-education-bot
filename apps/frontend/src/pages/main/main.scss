@@ -1,11 +1,16 @@
 @use 'components/shared/styles/constants' as *;
 @use 'components/shared/styles/mixins' as *;
 
+.main__container .dc-tabs__content {
+    min-height: 0;
+    overflow-y: auto;
+}
+
 .ai-analysis-wrapper {
     width: 100%;
+    min-height: 400px;
     background: var(--general-main-1);
     padding: 1.6rem;
-    min-height: 400px;
 }
 
 .run-panel {
