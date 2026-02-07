@@ -221,7 +221,13 @@ CLOUDFLARE_PROJECT_NAME=your_project_name
 
 #### Vercel
 
-The frontend app lives in `apps/frontend`. For Vercel, set **Root Directory** to `apps/frontend` in the project settings. Build and rewrites are configured in `apps/frontend/vercel.json`.
+The frontend is a workspace in this monorepo. Deploy from the **repo root** so the full repo is available for install and build:
+
+1. In Vercel project settings, leave **Root Directory** empty (use the repository root).
+2. The root [vercel.json](vercel.json) defines install (`npm ci`), build (`npm run build`), and output (`apps/frontend/dist`). SPA rewrites are included.
+3. Link and deploy from the repo root: `vercel link` (link to your project), then `npm run deploy` or `vercel --prod`.
+
+Do not set Root Directory to `apps/frontend` and do not run `vercel` from `apps/frontend`—the install would fail because the monorepo (e.g. `packages/shared`) would not be available. If you still see `Command "cd ../.. && npm ci" exited with 1`, either run **from repo root** (`npm run deploy` or `vercel --prod`) or in Vercel Dashboard → Project → Settings → Build & Development clear the **Install Command** override so the root [vercel.json](vercel.json) is used.
 
 ## Testing
 

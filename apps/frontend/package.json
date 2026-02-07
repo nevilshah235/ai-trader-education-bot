@@ -18,7 +18,8 @@
     "coverage": "jest --coverage --coverageReporters=json-summary",
     "coverage:total": "npm run coverage && node -p \"require('./coverage/coverage-summary.json').total.lines.pct\"",
     "build:analyze": "BUNDLE_ANALYZE=true rsbuild build",
-    "generate:brand-css": "node scripts/generate-brand-css.js"
+    "generate:brand-css": "node scripts/generate-brand-css.js",
+    "vercel:env": "bash scripts/vercel-env-push.sh"
   },
   "dependencies": {
     "@ai-edu/shared": "0.0.1",

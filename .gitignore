@@ -81,3 +81,4 @@ cline_instructions.md
 .ai-rules.md
 
 ai-trader-education-bot/apps/backend/Explanations/*
+.env*.local
