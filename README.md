@@ -219,6 +219,10 @@ CLOUDFLARE_API_TOKEN=your_api_token
 CLOUDFLARE_PROJECT_NAME=your_project_name
 ```
 
+#### Vercel
+
+The frontend app lives in `apps/frontend`. For Vercel, set **Root Directory** to `apps/frontend` in the project settings. Build and rewrites are configured in `apps/frontend/vercel.json`.
+
 ## Testing
 
 The project uses Jest and React Testing Library for testing:
