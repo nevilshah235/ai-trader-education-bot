@@ -45,7 +45,8 @@ export default defineConfig({
                 GROWTHBOOK_DECRYPTION_KEY: JSON.stringify(process.env.GROWTHBOOK_DECRYPTION_KEY),
                 POSTHOG_KEY: JSON.stringify(process.env.POSTHOG_KEY),
                 POSTHOG_HOST: JSON.stringify(process.env.POSTHOG_HOST),
-                CLIENT_ID: JSON.stringify(process.env.CLIENT_ID)
+                CLIENT_ID: JSON.stringify(process.env.CLIENT_ID),
+                AGENT_ANALYSIS_API_URL: JSON.stringify(process.env.AGENT_ANALYSIS_API_URL || 'http://localhost:8000')
             },
         },
         alias: {
@@ -56,6 +57,7 @@ export default defineConfig({
             '@/hooks': path.resolve(__dirname, './src/hooks'),
             '@/utils': path.resolve(__dirname, './src/utils'),
             '@/constants': path.resolve(__dirname, './src/constants'),
+            '@/services': path.resolve(__dirname, './src/services'),
             '@/stores': path.resolve(__dirname, './src/stores'),
         },
     },
@@ -86,6 +88,12 @@ export default defineConfig({
     server: {
         port: 8443,
         compress: true,
+        proxy: {
+            '/api': {
+                target: 'http://127.0.0.1:8000',
+                changeOrigin: true,
+            },
+        },
     },
     dev: {
         hmr: true,

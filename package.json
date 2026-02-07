@@ -19,7 +19,8 @@
         "coverage:total": "npm run coverage && node -p \"require('./coverage/coverage-summary.json').total.lines.pct\"",
         "prepare": "husky install",
         "build:analyze": "BUNDLE_ANALYZE=true rsbuild build",
-        "generate:brand-css": "node scripts/generate-brand-css.js"
+        "generate:brand-css": "node scripts/generate-brand-css.js",
+        "dev:agent": "cd apps/backend/src && uvicorn main:app --reload --port 8000"
     },
     "dependencies": {
         "@deriv-com/analytics": "^1.35.1",
