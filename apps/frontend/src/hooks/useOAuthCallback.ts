@@ -1,6 +1,17 @@
-import { useCallback,useEffect, useState } from 'react';
-import { clearCSRFToken,validateCSRFToken } from '@/components/shared/utils/config/config';
+import { useCallback, useEffect, useState } from 'react';
+import {
+    clearCSRFToken,
+    isDerivThirdPartyAuth,
+    validateCSRFToken,
+} from '@/components/shared/utils/config/config';
 import { clearAuthData } from '@/utils/auth-utils';
+
+/** Single account from Deriv third-party OAuth redirect (acctN, tokenN, curN) */
+export interface DerivOAuthAccount {
+    account: string;
+    token: string;
+    currency: string;
+}
 
 /**
  * OAuth callback parameters extracted from URL
@@ -10,6 +21,8 @@ export interface OAuthCallbackParams {
     state: string | null;
     error: string | null;
     error_description: string | null;
+    /** Set when third-party OAuth redirect was parsed (acct1, token1, ...) */
+    derivOAuthAccounts?: DerivOAuthAccount[];
 }
 
 /**
@@ -21,6 +34,38 @@ export interface OAuthCallbackResult {
     params: OAuthCallbackParams;
     error: string | null;
     cleanupURL: () => void;
+    /** True when third-party OAuth redirect was handled (tokens stored, no code exchange) */
+    isThirdPartySuccess: boolean;
+}
+
+/** Parse Deriv third-party redirect params (acct1, token1, cur1, acct2, ...) into account list */
+function parseDerivOAuthRedirectParams(urlParams: URLSearchParams): DerivOAuthAccount[] {
+    const accounts: DerivOAuthAccount[] = [];
+    let n = 1;
+    while (true) {
+        const acct = urlParams.get(`acct${n}`);
+        const token = urlParams.get(`token${n}`);
+        const cur = urlParams.get(`cur${n}`);
+        if (!acct || !token) break;
+        accounts.push({
+            account: acct,
+            token,
+            currency: cur || 'usd',
+        });
+        n += 1;
+    }
+    return accounts;
+}
+
+/** Remove Deriv third-party params from URL (acctN, tokenN, curN) */
+function cleanupThirdPartyParams(url: URL): void {
+    const keysToDelete: string[] = [];
+    url.searchParams.forEach((_, key) => {
+        if (/^acct\d+$/.test(key) || /^token\d+$/.test(key) || /^cur\d+$/.test(key)) {
+            keysToDelete.push(key);
+        }
+    });
+    keysToDelete.forEach(k => url.searchParams.delete(k));
 }
 
 /**
@@ -50,9 +95,12 @@ export interface OAuthCallbackResult {
  * ```
  */
 export const useOAuthCallback = (): OAuthCallbackResult => {
-    const [result, setResult] = useState<Omit<OAuthCallbackResult, 'cleanupURL'>>({
+    const [result, setResult] = useState<
+        Omit<OAuthCallbackResult, 'cleanupURL'> & { isThirdPartySuccess: boolean }
+    >({
         isProcessing: true,
         isValid: false,
+        isThirdPartySuccess: false,
         params: {
             code: null,
             state: null,
@@ -70,13 +118,51 @@ export const useOAuthCallback = (): OAuthCallbackResult => {
         url.searchParams.delete('scope');
         url.searchParams.delete('error');
         url.searchParams.delete('error_description');
+        cleanupThirdPartyParams(url);
         window.history.replaceState({}, '', url.toString());
     }, []);
 
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
 
-        // Extract OAuth parameters
+        // Third-party OAuth (Deriv): redirect has acct1, token1, cur1, ...
+        if (isDerivThirdPartyAuth()) {
+            const acct1 = urlParams.get('acct1');
+            const token1 = urlParams.get('token1');
+            if (acct1 && token1) {
+                const accounts = parseDerivOAuthRedirectParams(urlParams);
+                if (accounts.length > 0) {
+                    const first = accounts[0];
+                    sessionStorage.setItem('deriv_oauth_token', first.token);
+                    const derivAccountsShape = accounts.map(a => ({
+                        account_id: a.account,
+                        currency: a.currency,
+                    }));
+                    sessionStorage.setItem('deriv_accounts', JSON.stringify(derivAccountsShape));
+                    localStorage.setItem('active_loginid', first.account);
+                    const isDemo =
+                        first.account.startsWith('VRT') || first.account.startsWith('VRTC');
+                    localStorage.setItem('account_type', isDemo ? 'demo' : 'real');
+                    setResult({
+                        isProcessing: false,
+                        isValid: true,
+                        isThirdPartySuccess: true,
+                        params: {
+                            code: null,
+                            state: null,
+                            error: null,
+                            error_description: null,
+                            derivOAuthAccounts: accounts,
+                        },
+                        error: null,
+                    });
+                    cleanupURL();
+                }
+                return;
+            }
+        }
+
+        // Extract OAuth parameters (internal/dbot flow)
         const code = urlParams.get('code');
         const state = urlParams.get('state');
         const error = urlParams.get('error');
@@ -90,6 +176,7 @@ export const useOAuthCallback = (): OAuthCallbackResult => {
             setResult({
                 isProcessing: false,
                 isValid: false,
+                isThirdPartySuccess: false,
                 params: { code: null, state: null, error: null, error_description: null },
                 error: null,
             });
@@ -102,6 +189,7 @@ export const useOAuthCallback = (): OAuthCallbackResult => {
             setResult({
                 isProcessing: false,
                 isValid: false,
+                isThirdPartySuccess: false,
                 params: { code, state, error, error_description },
                 error: error_description || error,
             });
@@ -117,6 +205,7 @@ export const useOAuthCallback = (): OAuthCallbackResult => {
             setResult({
                 isProcessing: false,
                 isValid: false,
+                isThirdPartySuccess: false,
                 params: { code, state, error, error_description },
                 error: 'Missing state parameter - potential security threat',
             });
@@ -131,6 +220,7 @@ export const useOAuthCallback = (): OAuthCallbackResult => {
             setResult({
                 isProcessing: false,
                 isValid: false,
+                isThirdPartySuccess: false,
                 params: { code, state, error, error_description },
                 error: 'CSRF token validation failed',
             });
@@ -146,6 +236,7 @@ export const useOAuthCallback = (): OAuthCallbackResult => {
             setResult({
                 isProcessing: false,
                 isValid: false,
+                isThirdPartySuccess: false,
                 params: { code, state, error, error_description },
                 error: 'Missing authorization code',
             });
@@ -157,6 +248,7 @@ export const useOAuthCallback = (): OAuthCallbackResult => {
         setResult({
             isProcessing: false,
             isValid: true,
+            isThirdPartySuccess: false,
             params: { code, state, error, error_description },
             error: null,
         });
@@ -165,5 +257,6 @@ export const useOAuthCallback = (): OAuthCallbackResult => {
     return {
         ...result,
         cleanupURL,
+        isThirdPartySuccess: result.isThirdPartySuccess,
     };
 };
