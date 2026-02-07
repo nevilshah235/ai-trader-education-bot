@@ -1,0 +1,19 @@
+# Local PostgreSQL for backend transaction/analysis DB testing.
+# Start: docker compose up -d postgres
+# Then set in project root .env: DATABASE_URL=postgresql+psycopg2://postgres:postgres@127.0.0.1:5432/trader_edu
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: trader_edu_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: trader_edu
+    ports:
+      - "5432:5432"
+    volumes:
+      - trader_edu_pgdata:/var/lib/postgresql/data
+
+volumes:
+  trader_edu_pgdata:

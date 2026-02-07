@@ -1,0 +1,98 @@
+.ai-summary {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 1rem;
+
+  &__header {
+    margin-bottom: 0.75rem;
+  }
+
+  &__label {
+    margin-bottom: 0.25rem;
+  }
+
+  &__trades {
+    flex: 0 0 auto;
+    margin-bottom: 0.75rem;
+  }
+
+  &__scrollbar {
+    max-height: 120px;
+    margin-top: 0.25rem;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  &__trade-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0.875rem;
+    min-height: 2.5rem;
+    background: var(--general-section-1);
+    border: 1px solid var(--general-section-1);
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.2s, background 0.2s;
+
+    &:hover {
+      border-color: var(--general-section-2);
+    }
+
+    &--selected {
+      border-color: var(--brand-red-coral);
+      background: var(--general-section-2);
+    }
+  }
+
+  &__trade-type {
+    font-size: 0.875rem;
+  }
+
+  &__trade-pnl {
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  &__actions {
+    margin-bottom: 0.75rem;
+  }
+
+  &__error {
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    border-radius: 4px;
+    background: rgba(255, 71, 87, 0.1);
+  }
+
+  &__result {
+    flex: 1;
+    min-height: 120px;
+  }
+
+  &__result-content {
+    padding: 0.5rem 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  &__recommendation,
+  &__explanation {
+    margin-bottom: 1rem;
+  }
+
+  &__points {
+    margin: 0;
+    padding-left: 1rem;
+
+    li {
+      margin-bottom: 0.25rem;
+    }
+  }
+}
