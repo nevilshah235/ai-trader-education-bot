@@ -63,7 +63,7 @@ ErrorLogger.error('ClientStore', 'WebSocket initialization failed', initError);
 
 ### Location
 
-[`src/utils/error-logger.ts`](../src/utils/error-logger.ts:1)
+[`src/utils/error-logger.ts`](../apps/frontend/src/utils/error-logger.ts:1)
 
 ### API Reference
 
@@ -304,10 +304,10 @@ ErrorLogger.setErrorReportingService(new TrackJSErrorReportingService());
 
 The following authentication-related files have been migrated to use ErrorLogger:
 
-1. ✅ [`src/hooks/useLogout.ts`](../src/hooks/useLogout.ts:1)
-2. ✅ [`src/hooks/useInvalidTokenHandler.ts`](../src/hooks/useInvalidTokenHandler.ts:1)
-3. ✅ [`src/services/oauth-token-exchange.service.ts`](../src/services/oauth-token-exchange.service.ts:1)
-4. ✅ [`src/stores/client-store.ts`](../src/stores/client-store.ts:1)
+1. ✅ [`src/hooks/useLogout.ts`](../apps/frontend/src/hooks/useLogout.ts:1)
+2. ✅ [`src/hooks/useInvalidTokenHandler.ts`](../apps/frontend/src/hooks/useInvalidTokenHandler.ts:1)
+3. ✅ [`src/services/oauth-token-exchange.service.ts`](../apps/frontend/src/services/oauth-token-exchange.service.ts:1)
+4. ✅ [`src/stores/client-store.ts`](../apps/frontend/src/stores/client-store.ts:1)
 
 ### Migration Steps
 

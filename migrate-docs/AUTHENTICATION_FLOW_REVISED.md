@@ -32,10 +32,10 @@ This document describes the **revised authentication flow** after the refactorin
 
 ### What Was Added/Modified
 
-- ✅ [`src/hooks/useLogout.ts`](../src/hooks/useLogout.ts:1) - Simplified logout hook
-- ✅ [`src/hooks/useInvalidTokenHandler.ts`](../src/hooks/useInvalidTokenHandler.ts:1) - Invalid token handler
-- ✅ [`src/services/oauth-token-exchange.service.ts`](../src/services/oauth-token-exchange.service.ts:1) - Enhanced with auto-initialization
-- ✅ [`src/stores/client-store.ts`](../src/stores/client-store.ts:243) - Updated logout method
+- ✅ [`src/hooks/useLogout.ts`](../apps/frontend/src/hooks/useLogout.ts:1) - Simplified logout hook
+- ✅ [`src/hooks/useInvalidTokenHandler.ts`](../apps/frontend/src/hooks/useInvalidTokenHandler.ts:1) - Invalid token handler
+- ✅ [`src/services/oauth-token-exchange.service.ts`](../apps/frontend/src/services/oauth-token-exchange.service.ts:1) - Enhanced with auto-initialization
+- ✅ [`src/stores/client-store.ts`](../apps/frontend/src/stores/client-store.ts:243) - Updated logout method
 
 ---
 
@@ -63,7 +63,7 @@ User is authenticated
 
 ### 2. Token Exchange Process
 
-**File:** [`src/services/oauth-token-exchange.service.ts`](../src/services/oauth-token-exchange.service.ts:96)
+**File:** [`src/services/oauth-token-exchange.service.ts`](../apps/frontend/src/services/oauth-token-exchange.service.ts:96)
 
 ```typescript
 static async exchangeCodeForToken(code: string): Promise<TokenExchangeResponse> {
@@ -192,7 +192,7 @@ static getAuthInfo(): AuthInfo | null {
 
 ### 1. User-Initiated Logout
 
-**File:** [`src/hooks/useLogout.ts`](../src/hooks/useLogout.ts:1)
+**File:** [`src/hooks/useLogout.ts`](../apps/frontend/src/hooks/useLogout.ts:1)
 
 ```typescript
 export const useLogout = () => {
@@ -238,7 +238,7 @@ export const useLogout = () => {
 
 ### 2. ClientStore Logout Method
 
-**File:** [`src/stores/client-store.ts`](../src/stores/client-store.ts:243)
+**File:** [`src/stores/client-store.ts`](../apps/frontend/src/stores/client-store.ts:243)
 
 ```typescript
 logout = async () => {
@@ -299,7 +299,7 @@ logout = async () => {
 
 ### 3. Auth Error Logout
 
-**File:** [`src/app/CoreStoreProvider.tsx`](../src/app/CoreStoreProvider.tsx:115)
+**File:** [`src/app/CoreStoreProvider.tsx`](../apps/frontend/src/app/CoreStoreProvider.tsx:115)
 
 ```typescript
 // Handle auth errors by calling client.logout() directly
@@ -319,7 +319,7 @@ if (error?.code === 'AuthorizationRequired' || error?.code === 'DisabledClient' 
 
 ### Hook Implementation
 
-**File:** [`src/hooks/useInvalidTokenHandler.ts`](../src/hooks/useInvalidTokenHandler.ts:1)
+**File:** [`src/hooks/useInvalidTokenHandler.ts`](../apps/frontend/src/hooks/useInvalidTokenHandler.ts:1)
 
 ```typescript
 const handleInvalidToken = async () => {
@@ -378,7 +378,7 @@ const handleInvalidToken = () => {
 
 ### 1. OAuthTokenExchangeService
 
-**Location:** [`src/services/oauth-token-exchange.service.ts`](../src/services/oauth-token-exchange.service.ts:1)
+**Location:** [`src/services/oauth-token-exchange.service.ts`](../apps/frontend/src/services/oauth-token-exchange.service.ts:1)
 
 **Responsibilities:**
 
@@ -398,7 +398,7 @@ const handleInvalidToken = () => {
 
 ### 2. useLogout Hook
 
-**Location:** [`src/hooks/useLogout.ts`](../src/hooks/useLogout.ts:1)
+**Location:** [`src/hooks/useLogout.ts`](../apps/frontend/src/hooks/useLogout.ts:1)
 
 **Responsibilities:**
 
@@ -417,7 +417,7 @@ const handleLogout = useLogout();
 
 ### 3. useInvalidTokenHandler Hook
 
-**Location:** [`src/hooks/useInvalidTokenHandler.ts`](../src/hooks/useInvalidTokenHandler.ts:1)
+**Location:** [`src/hooks/useInvalidTokenHandler.ts`](../apps/frontend/src/hooks/useInvalidTokenHandler.ts:1)
 
 **Responsibilities:**
 
@@ -434,7 +434,7 @@ useInvalidTokenHandler();
 
 ### 4. ClientStore
 
-**Location:** [`src/stores/client-store.ts`](../src/stores/client-store.ts:1)
+**Location:** [`src/stores/client-store.ts`](../apps/frontend/src/stores/client-store.ts:1)
 
 **Responsibilities:**
 
@@ -494,7 +494,7 @@ try {
 
 ### 3. Invalid Token Errors
 
-**Handled by:** [`useInvalidTokenHandler`](../src/hooks/useInvalidTokenHandler.ts:1)
+**Handled by:** [`useInvalidTokenHandler`](../apps/frontend/src/hooks/useInvalidTokenHandler.ts:1)
 
 **Flow:**
 
