@@ -1,6 +1,7 @@
 # Derivatives Bot
 
-> A modern platform for automated derivatives trading with visual bot building, real-time analytics, and comprehensive tutorials.
+> A modern platform for automated derivatives trading
+> *feat/agent_analysis* - agent analysis enhancements with visual bot building, real-time analytics, and comprehensive tutorials.
 
 ![Prerequisite](https://img.shields.io/badge/node-20.x-blue.svg)
 ![Prerequisite](https://img.shields.io/badge/npm-9.x-blue.svg)
