@@ -4,7 +4,8 @@ import base64
 import json
 from typing import Optional
 
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 from models.schemas import TradePayload, AnalystOutput
 
@@ -39,29 +40,36 @@ def _build_analyst_prompt(payload: TradePayload) -> str:
     return "".join(parts)
 
 
+def _mime_for_image(img_bytes: bytes) -> str:
+    """Detect MIME type from image bytes (PNG/JPEG)."""
+    if img_bytes[:8] == b"\x89PNG\r\n\x1a\n":
+        return "image/png"
+    if img_bytes[:2] == b"\xff\xd8" or img_bytes[6:10] in (b"JFIF", b"Exif"):
+        return "image/jpeg"
+    return "image/png"
+
+
 def run_analyst(
     payload: TradePayload,
     chart_image_b64: Optional[str] = None,
     api_key: Optional[str] = None,
 ) -> AnalystOutput:
     """Run Analyst Agent on trade payload and optional chart screenshot."""
-    if api_key:
-        genai.configure(api_key=api_key)
-
-    model = genai.GenerativeModel("gemini-2.0-flash", system_instruction=ANALYST_SYSTEM_PROMPT)
-
+    client = genai.Client(api_key=api_key) if api_key else genai.Client()
     user_content = _build_analyst_prompt(payload)
 
     if chart_image_b64:
-        from PIL import Image
-        import io
         img_data = base64.b64decode(chart_image_b64)
-        img = Image.open(io.BytesIO(img_data))
-        parts = [user_content, img]
+        mime = _mime_for_image(img_data)
+        contents = [user_content, types.Part.from_bytes(data=img_data, mime_type=mime)]
     else:
-        parts = [user_content]
+        contents = [user_content]
 
-    response = model.generate_content(parts)
+    response = client.models.generate_content(
+        model="gemini-2.0-flash",
+        contents=contents,
+        config=types.GenerateContentConfig(system_instruction=ANALYST_SYSTEM_PROMPT),
+    )
     text = response.text.strip()
 
     # Extract JSON (handle markdown code blocks)

@@ -3,7 +3,8 @@
 import json
 from typing import Optional
 
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 from models.schemas import TradePayload, AnalystOutput, TutorOutput
 
@@ -47,11 +48,12 @@ def run_tutor(
     api_key: Optional[str] = None,
 ) -> TutorOutput:
     """Run Tutor Agent on Analyst output."""
-    if api_key:
-        genai.configure(api_key=api_key)
-
-    model = genai.GenerativeModel("gemini-2.0-flash", system_instruction=TUTOR_SYSTEM_PROMPT)
-    response = model.generate_content(_build_tutor_prompt(analyst_output, payload))
+    client = genai.Client(api_key=api_key) if api_key else genai.Client()
+    response = client.models.generate_content(
+        model="gemini-2.0-flash",
+        contents=_build_tutor_prompt(analyst_output, payload),
+        config=types.GenerateContentConfig(system_instruction=TUTOR_SYSTEM_PROMPT),
+    )
     text = response.text.strip()
 
     if "```json" in text:
