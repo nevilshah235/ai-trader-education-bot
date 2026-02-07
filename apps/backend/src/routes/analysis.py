@@ -1,7 +1,9 @@
 """FastAPI routes for trade analysis pipeline."""
 
+import logging
 import os
 import base64
+import traceback
 from pathlib import Path
 from datetime import datetime
 
@@ -10,8 +12,10 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from db import get_engine, get_session_factory
+
+log = logging.getLogger("agent_analysis.routes.analysis")
 from db.crud_analysis import create_analysis_result
-from db.crud_transactions import upsert_transaction
+from db.crud_transactions import get_chart_image_b64, upsert_transaction
 from models.schemas import TradePayload, AnalystOutput, TutorOutput
 from agents import run_analyst, run_tutor
 
@@ -61,6 +65,7 @@ def _persist_payload_and_result(
     tutor_output: TutorOutput,
     explanation_file: str,
     loginid: str | None,
+    chart_image_b64: str | None = None,
 ):
     """Upsert transaction and create analysis result when loginid is provided."""
     if not loginid:
@@ -83,6 +88,7 @@ def _persist_payload_and_result(
         exit_tick=c.exit_tick,
         strategy_intent=payload.strategy_intent.model_dump() if payload.strategy_intent else None,
         behavioral_summary=payload.behavioral_summary.model_dump() if payload.behavioral_summary else None,
+        chart_image_b64=chart_image_b64,
     )
     db.flush()  # ensure tx.id is set for new rows
     create_analysis_result(
@@ -118,16 +124,33 @@ async def analyse_trade(
     if chart_screenshot and chart_screenshot.filename:
         content = await chart_screenshot.read()
         chart_b64 = base64.b64encode(content).decode("utf-8")
+    if chart_b64 is None and loginid:
+        chart_b64 = get_chart_image_b64(db, user_id=loginid, contract_id=payload.contract.contract_id)
 
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
-        raise HTTPException(status_code=500, detail="GEMINI_API_KEY not set in .env")
+        log.error("GEMINI_API_KEY not set")
+        raise HTTPException(
+            status_code=500,
+            detail="GEMINI_API_KEY not set. Add it to apps/backend/.env (or repo root .env).",
+        )
 
-    analyst_output: AnalystOutput = run_analyst(payload, chart_image_b64=chart_b64, api_key=api_key)
-    tutor_output: TutorOutput = run_tutor(analyst_output, payload, api_key=api_key)
+    log.debug("Running analyst then tutor for contract_id=%s", payload.contract.contract_id)
+    try:
+        analyst_output: AnalystOutput = run_analyst(payload, chart_image_b64=chart_b64, api_key=api_key)
+        tutor_output: TutorOutput = run_tutor(analyst_output, payload, api_key=api_key)
+    except Exception as e:
+        log.exception("Agent error: %s", e)
+        raise HTTPException(status_code=500, detail=f"Agent error: {e!s}") from e
 
     explanation_file = _save_explanation(payload.contract.contract_id, tutor_output)
-    _persist_payload_and_result(db, payload, analyst_output, tutor_output, explanation_file, loginid)
+    try:
+        _persist_payload_and_result(
+            db, payload, analyst_output, tutor_output, explanation_file, loginid, chart_image_b64=chart_b64
+        )
+    except Exception as e:
+        log.exception("Failed to persist analysis result: %s", e)
+        raise HTTPException(status_code=500, detail=f"Failed to persist result: {e!s}") from e
 
     return AnalysisResponse(
         trade_explanation=tutor_output.explanation,

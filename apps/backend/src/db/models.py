@@ -35,6 +35,9 @@ class Transaction(Base):
     strategy_intent = Column(JSON, nullable=True)
     behavioral_summary = Column(JSON, nullable=True)
 
+    # Chart screenshot (base64 PNG) for analyst agent
+    chart_image_b64 = Column(Text, nullable=True)
+
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

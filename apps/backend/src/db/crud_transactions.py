@@ -25,6 +25,7 @@ def upsert_transaction(
     exit_tick: str | None = None,
     strategy_intent: dict | None = None,
     behavioral_summary: dict | None = None,
+    chart_image_b64: str | None = None,
 ) -> Transaction:
     """Insert or update a transaction. Unique on (user_id, contract_id)."""
     row = session.query(Transaction).filter(
@@ -47,6 +48,8 @@ def upsert_transaction(
             row.strategy_intent = strategy_intent
         if behavioral_summary is not None:
             row.behavioral_summary = behavioral_summary
+        if chart_image_b64 is not None:
+            row.chart_image_b64 = chart_image_b64
         return row
     row = Transaction(
         user_id=user_id,
@@ -64,6 +67,7 @@ def upsert_transaction(
         exit_tick=exit_tick,
         strategy_intent=strategy_intent,
         behavioral_summary=behavioral_summary,
+        chart_image_b64=chart_image_b64,
     )
     session.add(row)
     return row
@@ -97,3 +101,13 @@ def get_transaction_by_contract(
         Transaction.user_id == user_id,
         Transaction.contract_id == contract_id,
     ).first()
+
+
+def get_chart_image_b64(
+    session: Session,
+    user_id: str,
+    contract_id: str,
+) -> str | None:
+    """Get stored chart image (base64) for a transaction, for use by analyst."""
+    tx = get_transaction_by_contract(session, user_id=user_id, contract_id=contract_id)
+    return tx.chart_image_b64 if tx else None
