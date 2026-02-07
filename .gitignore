@@ -57,6 +57,11 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Python
+__pycache__/
+*.pyc
+*.db
+
 # Misc build / tooling
 .vercel
 .grunt/
