@@ -70,14 +70,18 @@ const router = createBrowserRouter(
  * All complex logic has been extracted into custom hooks for better maintainability
  */
 function App() {
-    // Handle OAuth callback flow (CSRF validation + code extraction)
-    const { isProcessing, isValid, params, error, cleanupURL } = useOAuthCallback();
+    // Handle OAuth callback flow (CSRF validation + code extraction, or third-party acct/token)
+    const { isProcessing, isValid, params, error, cleanupURL, isThirdPartySuccess } = useOAuthCallback();
 
     // Handle account switching via URL parameter
     useAccountSwitching();
 
-    // Process the authorization code when OAuth callback is valid
+    // Process the authorization code when OAuth callback is valid (dbot flow only; third-party already handled in hook)
     React.useEffect(() => {
+        if (isThirdPartySuccess) {
+            // Third-party OAuth: tokens already stored in useOAuthCallback; no token exchange
+            return;
+        }
         if (!isProcessing && isValid && params.code) {
             // Exchange authorization code for access token
             OAuthTokenExchangeService.exchangeCodeForToken(params.code)
@@ -99,7 +103,7 @@ function App() {
         } else if (!isProcessing && error) {
             console.error('OAuth callback error:', error);
         }
-    }, [isProcessing, isValid, params.code, error, cleanupURL]);
+    }, [isProcessing, isValid, params.code, error, cleanupURL, isThirdPartySuccess]);
 
     return <RouterProvider router={router} />;
 }

@@ -201,6 +201,12 @@ src/
 
 ## Configuration
 
+### Environment Variables
+
+Copy `.env.example` to `.env` and set values as needed. Key variables (see `rsbuild.config.ts` for the full list):
+
+- **DERIV_APP_ID** (optional): When set, the app uses [Deriv third-party OAuth](https://developers.deriv.com/docs/authentication) (oauth.deriv.com) and the public WebSocket API. Use this for local testing (e.g. via a tunnel) or when deploying to your own domain (e.g. Vercel). Register an app at [api.deriv.com](https://api.deriv.com) (Dashboard → Applications), set the OAuth Redirect URL to your app origin, and set `DERIV_APP_ID` to the App ID. If unset, the app uses the default dbot auth flow.
+
 ### Deployment Setup
 
 #### Cloudflare Pages

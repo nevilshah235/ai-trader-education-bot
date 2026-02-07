@@ -49,7 +49,9 @@ export default defineConfig({
                 POSTHOG_KEY: JSON.stringify(process.env.POSTHOG_KEY),
                 POSTHOG_HOST: JSON.stringify(process.env.POSTHOG_HOST),
                 CLIENT_ID: JSON.stringify(process.env.CLIENT_ID),
-                EDUCATION_API_URL: JSON.stringify(process.env.EDUCATION_API_URL)
+                EDUCATION_API_URL: JSON.stringify(process.env.EDUCATION_API_URL),
+                DERIV_APP_ID: JSON.stringify(process.env.DERIV_APP_ID),
+                DERIV_OAUTH_REDIRECT_URI: JSON.stringify(process.env.DERIV_OAUTH_REDIRECT_URI),
             },
         },
         alias: {
@@ -64,6 +66,8 @@ export default defineConfig({
         },
     },
     output: {
+        // Use 'auto' so chunks load from current origin (works when opened via ngrok after OAuth redirect)
+        publicPath: 'auto',
         copy: [
             {
                 from: path.join(rootNodeModules, '@deriv-com/smartcharts-champion/dist/*'),
@@ -91,9 +95,11 @@ export default defineConfig({
         template: './index.html',
     },
     server: {
-        host: 'localhost',
+        host: '0.0.0.0',
         port: 8443,
         compress: true,
+        // Serve index.html for all routes so /redirect/ (Deriv OAuth callback) loads the SPA
+        historyApiFallback: true,
     },
     dev: {
         hmr: true,

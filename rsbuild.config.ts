@@ -46,7 +46,9 @@ export default defineConfig({
                 POSTHOG_KEY: JSON.stringify(process.env.POSTHOG_KEY),
                 POSTHOG_HOST: JSON.stringify(process.env.POSTHOG_HOST),
                 CLIENT_ID: JSON.stringify(process.env.CLIENT_ID),
-                AGENT_ANALYSIS_API_URL: JSON.stringify(process.env.AGENT_ANALYSIS_API_URL || 'http://localhost:8000')
+                AGENT_ANALYSIS_API_URL: JSON.stringify(process.env.AGENT_ANALYSIS_API_URL || 'http://localhost:8000'),
+                DERIV_APP_ID: JSON.stringify(process.env.DERIV_APP_ID),
+                DERIV_OAUTH_REDIRECT_URI: JSON.stringify(process.env.DERIV_OAUTH_REDIRECT_URI),
             },
         },
         alias: {

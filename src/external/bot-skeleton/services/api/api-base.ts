@@ -1,4 +1,5 @@
 import { getAccountId, getAccountType, isDemoAccount, removeUrlParameter } from '@/analytics/utils';
+import { isDerivThirdPartyAuth } from '@/components/shared';
 import CommonStore from '@/stores/common-store';
 import { TAuthData } from '@/types/api-types';
 import { clearAuthData } from '@/utils/auth-utils';
@@ -110,6 +111,26 @@ class APIBase {
             removeUrlParameter('account_type');
         }
 
+        // Third-party OAuth: public WebSocket requires explicit authorize(token) before any API calls
+        if (isDerivThirdPartyAuth() && this.api) {
+            const sessionToken = sessionStorage.getItem('deriv_oauth_token');
+            if (sessionToken) {
+                setIsAuthorizing(true);
+                try {
+                    const { error: authError } = await this.api.authorize(sessionToken);
+                    if (authError) {
+                        console.error('[APIBase] Third-party authorize failed:', authError);
+                        setIsAuthorizing(false);
+                        return;
+                    }
+                } catch (err) {
+                    console.error('[APIBase] Third-party authorize error:', err);
+                    setIsAuthorizing(false);
+                    return;
+                }
+            }
+        }
+
         // Check if we have an account_id from URL or localStorage
         let activeAccountId: string | null = getAccountId();
 
@@ -124,11 +145,11 @@ class APIBase {
                         const accountId = accounts[0].account_id as string;
                         activeAccountId = accountId;
                         localStorage.setItem('active_loginid', accountId);
-                        
+
                         // Set account type based on account_id prefix
                         const isDemo = accountId.startsWith('VRT') || accountId.startsWith('VRTC');
                         localStorage.setItem('account_type', isDemo ? 'demo' : 'real');
-                        
+
                         console.log('[APIBase] Set active_loginid from sessionStorage:', accountId);
                     }
                 }
@@ -139,8 +160,12 @@ class APIBase {
 
         // Now proceed with normal authorization if we have an account_id
         if (activeAccountId) {
-            setIsAuthorizing(true);
+            if (!isDerivThirdPartyAuth()) {
+                setIsAuthorizing(true);
+            }
             await this.authorizeAndSubscribe();
+        } else if (isDerivThirdPartyAuth()) {
+            setIsAuthorizing(false);
         }
     }
 
